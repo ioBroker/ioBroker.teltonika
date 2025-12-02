@@ -1,0 +1,114 @@
+{
+  "common": {
+    "name": "teltonika",
+    "version": "0.0.1",
+    "news": {
+
+    },
+    "titleLang": {
+      "en": "Teltonika",
+      "de": "Teltonika",
+      "ru": "Teltonika",
+      "pt": "Teltonika",
+      "nl": "Teltonika",
+      "fr": "Teltonika",
+      "it": "Teltonika",
+      "es": "Teltonika",
+      "pl": "Teltonika",
+      "zh-cn": "Teltonika",
+      "uk": "Teltonika"
+    },
+    "desc": {
+      "en": "The adapter reads data from Teltonika routers via MQTT",
+        "de": "Der Adapter liest Daten von Teltonika-Routern über MQTT",
+        "ru": "Адаптер считывает данные с маршрутизаторов Teltonika через MQTT",
+        "pt": "O adaptador lê dados de roteadores Teltonika via MQTT",
+        "nl": "De adapter leest gegevens van Teltonika-routers via MQTT",
+        "fr": "L'adaptateur lit les données des routeurs Teltonika via, MQTT",
+        "it": "L'adattatore legge i dati dai router Teltonika tramite MQTT",
+        "es": "El adaptador lee datos de los enrutadores Teltonika a, través de MQTT",
+        "pl": "Adapter odczytuje dane z routerów Teltonika za pośrednictwem MQTT",
+        "zh-cn": "该适配器通过MQTT从Teltonika路由器读取数据",
+        "uk": "Адаптер зчитує дані з маршрутизаторів Teltonika через MQTT"
+    },
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
+    ],
+    "licenseInformation": {
+      "license": "MIT",
+      "type": "free"
+    },
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "compact": true,
+    "enabled": true,
+    "readme": "https://github.com/ioBroker/ioBroker.teltonika/blob/master/README.md",
+    "loglevel": "info",
+    "icon": "teltonika.svg",
+    "adminUI": {
+      "config": "json"
+    },
+    "keywords": [
+      "ITEAD",
+      "MQTT",
+      "Sonoff",
+      "Tasmota"
+    ],
+    "nogit": true,
+    "connectionType": "local",
+    "dataSource": "poll",
+    "tier": 2,
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.teltonika/master/admin/teltonika.svg",
+    "type": "network",
+    "dependencies": [
+      {
+        "js-controller": ">=5.0.19"
+      }
+    ],
+    "plugins": {
+      "sentry": {
+        "dsn": "https://b975bb630271452e96a6bf115ec7946d@sentry.iobroker.net/37"
+      }
+    }
+  },
+  "encryptedNative": [
+    "password"
+  ],
+  "protectedNative": [
+    "password"
+  ],
+  "native": {
+    "port": 1883,
+    "bind": "0.0.0.0",
+    "user": "",
+    "password": "",
+    "timeout": 300,
+    "defaultQoS": 0,
+    "retransmitInterval": 2000,
+    "retransmitCount": 10,
+    "ignorePings": false
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "info.clients",
+        "name": "List of connected clients",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+    "type": "panel",
+    "i18n": true,
+    "items": {
+        "_header1": {
+            "type": "header",
+            "text": "Connection settings",
+            "size": 3,
+            "xs": 12,
+            "sm": 12
+        },
+        "bind": {
+            "newLine": true,
+            "type": "ip",
+            "label": "IP",
+            "listenOnAllPorts": true,
+            "xs": 12,
+            "sm": 10,
+            "md": 8,
+            "lg": 3
+        },
+        "port": {
+            "label": "Port",
+            "type": "number",
+            "min": 1,
+            "max": 65535,
+            "xs": 12,
+            "sm": 2,
+            "md": 2,
+            "lg": 1
+        },
+        "timeout": {
+            "label": "Client timeout",
+            "help": "in seconds",
+            "type": "number",
+            "min": 1,
+            "max": 99999,
+            "xs": 12,
+            "sm": 10,
+            "md": 2,
+            "lg": 1
+        },
+        "_header2": {
+            "newLine": true,
+            "type": "header",
+            "text": "Authentication settings",
+            "size": 3,
+            "xs": 12,
+            "sm": 12
+        },
+        "user": {
+            "newLine": true,
+            "type": "text",
+            "label": "User",
+            "xs": 12,
+            "sm": 12,
+            "md": 4,
+            "lg": 2
+        },
+        "password": {
+            "xs": 12,
+            "sm": 12,
+            "md": 8,
+            "lg": 4,
+            "type": "password",
+            "label": "Password",
+            "repeat": true
+        },
+        "routerType": {
+            "type": "select",
+            "label": "Router Type",
+            "noTranslation": true,
+            "options": [
+                { "label": "RUT1", "value": "RUT1" },
+                { "label": "RUT2", "value": "RUT2" },
+                { "label": "RUT3", "value": "RUT3" },
+                { "label": "RUT9", "value": "RUT9" },
+                { "label": "RUTX", "value": "RUTX" },
+                { "label": "RUTM", "value": "RUTM" },
+                { "label": "RUTC", "value": "RUTC" },
+                { "label": "TRB1", "value": "TRB1" },
+                { "label": "TRB2", "value": "TRB2" },
+                { "label": "TRB5", "value": "TRB5" },
+                { "label": "TRB141", "value": "TRB141" },
+                { "label": "OTD", "val": "OTD" }
+            ],
+            "xs": 12,
+            "sm": 12,
+            "md": 4,
+            "lg": 2
+        },
+        "_header4": {
+            "newLine": true,
+            "type": "header",
+            "text": "Other settings",
+            "size": 3,
+            "xs": 12,
+            "sm": 12
+        },
+        "ignorePings": {
+            "newLine": true,
+            "type": "checkbox",
+            "label": "Ignore warnings with pingreq",
+            "xs": 12,
+            "sm": 12
+        }
+    }
+}
