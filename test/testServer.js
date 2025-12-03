@@ -3,6 +3,7 @@
 /* jslint node: true */
 /* jslint esversion: 6 */
 'use strict';
+
 const setup = require('@iobroker/legacy-testing');
 
 let objects = null;
@@ -14,6 +15,22 @@ let routerConnected = false;
 let brokerStarted = false;
 const SERIAL = '123456780';
 
+const SUPPORTED_TOPICS = {
+    temperature: '366',
+    operator: 'o2',
+    signal: '50',
+    network: 'Roaming',
+    connection: '2G',
+    wan: '1.1.1.1',
+    uptime: '1234',
+    name: 'TestRouter',
+    digital1: 'N/A',
+    digital2: '1',
+    analog: '1234',
+    pin2: '0',
+    pin3: '1',
+    pin4: '2',
+};
 function encryptLegacy(key, value) {
     let result = '';
     for (let i = 0; i < value.length; i++) {
@@ -46,12 +63,10 @@ function startClients(_done) {
             if (topic === 'router/get') {
                 if (payload === 'id') {
                     mqttClientEmitter.publish('router/id', SERIAL);
-                } else if (payload === 'name') {
-                    mqttClientEmitter.publish(`router/${SERIAL}/name`, 'TestRouter');
-                } else if (payload === 'temperature') {
-                    mqttClientEmitter.publish('router/${SERIAL}/temperature', '366');
-                } else if (payload === 'signal') {
-                    mqttClientEmitter.publish('router/${SERIAL}/signal', '15');
+                } else if (SUPPORTED_TOPICS[payload]) {
+                    mqttClientEmitter.publish(`router/${SERIAL}/${payload}`, SUPPORTED_TOPICS[payload]);
+                } else {
+                    throw new Error(`Unknown topic request: ${topic} with payload ${payload}`);
                 }
             }
         },
@@ -129,9 +144,25 @@ describe('Teltonika server: Test mqtt server', () => {
 
     it('Teltonika Server: It must see temperature and other values', async () => {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const tempState = await states.getState(`teltonika.0.${SERIAL}.temperature`);
-        if (tempState.val !== 36.6) {
-            throw new Error(`Invalid temperature: ${tempState.val}`);
+        let state = await states.getState(`teltonika.0.${SERIAL}.temperature`);
+        if (state.val !== parseInt(SUPPORTED_TOPICS.temperature, 10) / 10) {
+            throw new Error(`Invalid temperature: ${state.val}`);
+        }
+        state = await states.getState(`teltonika.0.${SERIAL}.signal`);
+        if (state.val !== parseInt(SUPPORTED_TOPICS.signal, 10)) {
+            throw new Error(`Invalid signal: ${state.val}`);
+        }
+        state = await states.getState(`teltonika.0.${SERIAL}.digital1`);
+        if (state.val !== null) {
+            throw new Error(`Invalid digital1: ${state.val}`);
+        }
+        state = await states.getState(`teltonika.0.${SERIAL}.digital2`);
+        if (state.val !== true) {
+            throw new Error(`Invalid digital2: ${state.val}`);
+        }
+        state = await states.getState(`teltonika.0.${SERIAL}.operator`);
+        if (state.val !== SUPPORTED_TOPICS.operator) {
+            throw new Error(`Invalid operator: ${state.val}`);
         }
     }).timeout(7000);
 
