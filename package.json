@@ -1,7 +1,7 @@
 {
     "name": "iobroker.teltonika",
     "description": "The adapter reads data from Teltonika routers via MQTT and provides it in ioBroker.",
-    "version": "3.2.1",
+    "version": "0.0.1",
     "author": "bluefox <dogafox@gmail.com>",
     "homepage": "https://github.com/ioBroker/ioBroker.teltonika",
     "repository": {

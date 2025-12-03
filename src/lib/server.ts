@@ -160,7 +160,6 @@ export default class MQTTServer {
                     await this.updateClients();
 
                     await this.readId(client);
-                    this.startPolling();
                 },
             );
 
@@ -178,10 +177,11 @@ export default class MQTTServer {
 
             client.on('publish', async (packet: MQTTPacket): Promise<void> => {
                 if (this.clients[client.id] && client.__secret !== this.clients[client.id].__secret) {
-                    !this.config.ignorePings &&
+                    if (!this.config.ignorePings) {
                         this.adapter.log.warn(
                             `Old client ${client.id} with secret ${client.__secret} sends publish. Ignore! Actual secret is ${this.clients[client.id].__secret}`,
                         );
+                    }
                     return;
                 }
 
@@ -403,36 +403,42 @@ export default class MQTTServer {
         );
     }
 
-    startPolling() {
-        this.pollInterval ||= setInterval(
-            async (): Promise<void> => {
-                for (const clientId in this.clients) {
-                    if (this.clients[clientId].routerId) {
-                        // poll all data
-                        for (const topic in SUPPORTED_TOPICS) {
-                            if (
-                                !this.clients[clientId].states[topic] ||
-                                this.clients[clientId].states[topic] === 'received'
-                            ) {
-                                this.clients[clientId].states[topic] ||= 'requested';
-                                await new Promise<void>(resolve =>
-                                    this.clients[clientId].publish(
-                                        {
-                                            topic: 'router/get',
-                                            payload: topic,
-                                            qos: 0,
-                                            messageId: this.messageId++,
-                                        },
-                                        () => resolve(),
-                                    ),
-                                );
-                            }
-                        }
+    private async polling(): Promise<void> {
+        for (const clientId in this.clients) {
+            if (this.clients[clientId].routerId) {
+                // poll all data
+                for (const topic in SUPPORTED_TOPICS) {
+                    if (!this.clients[clientId].states[topic] || this.clients[clientId].states[topic] === 'received') {
+                        this.clients[clientId].states[topic] ||= 'requested';
+                        await new Promise<void>(resolve =>
+                            this.clients[clientId].publish(
+                                {
+                                    topic: 'router/get',
+                                    payload: topic,
+                                    qos: 0,
+                                    messageId: this.messageId++,
+                                },
+                                () => resolve(),
+                            ),
+                        );
                     }
                 }
-            },
-            (this.config.pollInterval as number) || 5000,
-        );
+            }
+        }
+    }
+
+    startPolling() {
+        if (!this.pollInterval) {
+            console.log(`${new Date().toISOString()}! START POLLING!`);
+            this.polling().catch(error => this.adapter.log.error(`Polling: ${error}`));
+            this.pollInterval = setInterval(
+                async (): Promise<void> => {
+                    console.log(`${new Date().toISOString()}! POLLING!`);
+                    this.polling();
+                },
+                (this.config.pollInterval as number) || 5000,
+            );
+        }
     }
 
     stopPolling() {
@@ -491,8 +497,7 @@ export default class MQTTServer {
                 },
                 native: {},
                 type: 'state',
-
-            })
+            });
             this.aliveStates[client.id] = alive;
             await this.adapter.setForeignStateAsync(`${this.adapter.namespace}.${client.routerId}.alive`, alive, true);
         }

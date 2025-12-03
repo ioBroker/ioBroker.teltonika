@@ -3,8 +3,10 @@ const mqtt = require('mqtt');
 
 function Client(cbConnected, cbChanged, config) {
     let that = this;
-    if (typeof config === 'string') config = { name: config };
-    config = config || {};
+    if (typeof config === 'string') {
+        config = { name: config };
+    }
+    config ||= {};
     config.url = config.url || '127.0.0.1';
     this.client = mqtt.connect(
         `mqtt://${config.user ? `${config.user}:${config.pass}@` : ''}${config.url}${config.name ? `?clientId=${config.name}` : ''}`,
