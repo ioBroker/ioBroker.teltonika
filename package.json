@@ -37,6 +37,7 @@
     "files": [
         "build/",
         "admin/",
+        "img/",
         "io-package.json",
         "LICENSE"
     ],
