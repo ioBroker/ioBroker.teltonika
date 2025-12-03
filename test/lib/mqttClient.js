@@ -3,29 +3,18 @@ const mqtt = require('mqtt');
 
 function Client(cbConnected, cbChanged, config) {
     let that = this;
-    if (typeof config === 'string') config = {name: config};
+    if (typeof config === 'string') config = { name: config };
     config = config || {};
     config.url = config.url || '127.0.0.1';
-    this.client = mqtt.connect(`mqtt://${config.user ? (`${config.user}:${config.pass}@`) : ''}${config.url}${config.name ? `?clientId=${config.name}` : ''}`, config);
+    this.client = mqtt.connect(
+        `mqtt://${config.user ? `${config.user}:${config.pass}@` : ''}${config.url}${config.name ? `?clientId=${config.name}` : ''}`,
+        config,
+    );
 
     this.client.on('connect', () => {
         console.log(`${new Date()} test client connected to 127.0.0.1`);
-
-        /*that.client.publish('mqtt/0/test', 'Roger1');
-        client.publish('test/out/testMessage1', 'Roger1');
-         client.publish('test/out/testMessage2', 'Roger2');
-         client.publish('test/in/testMessage3', 'Roger3');
-         client.publish('test/in/testMessage4',  'Roger4');*/
-
-        /*client.publish('arduino/kitchen/out/temperature', '10.1');
-         client.publish('arduino/kitchen/out/humidity',  '56');
-         // Current light state
-         client.publish('arduino/kitchen/in/lightActor', 'false');
-
-         client.subscribe('arduino/kitchen/in/#');*/
-        //client.subscribe('arduino/kitchen/in/updateInterval');
-        that.client.subscribe('#');
-        cbConnected && cbConnected(true);
+        that.client.subscribe('router/get');
+        cbConnected?.(true);
     });
 
     this.client.on('message', (topic, message, packet) => {
@@ -61,9 +50,9 @@ function Client(cbConnected, cbChanged, config) {
         }
         const opts = {
             retain: retain || false,
-            qos: qos || 0
+            qos: qos || 0,
         };
-        that.client.publish(topic,  message, opts, cb);
+        that.client.publish(topic, message, opts, cb);
     };
     this.subscribe = (topic, opts, cb) => {
         if (typeof opts === 'function') {
