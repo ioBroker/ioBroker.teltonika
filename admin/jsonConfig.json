@@ -103,6 +103,18 @@
             "label": "Ignore warnings with pingreq",
             "xs": 12,
             "sm": 12
+        },
+        "pollInterval": {
+            "newLine": true,
+            "type": "number",
+            "label": "Poll interval",
+            "help": "in milliseconds",
+            "min": 1000,
+            "max": 60000,
+            "xs": 12,
+            "sm": 12,
+            "md": 4,
+            "lg": 2
         }
     }
 }

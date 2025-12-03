@@ -13,19 +13,7 @@ export enum RouterType {
     OTD = 'OTD',
 }
 
-export type RouterTypeUnion =
-    | 'RUT1'
-    | 'RUT2'
-    | 'RUT3'
-    | 'RUT9'
-    | 'RUTX'
-    | 'RUTM'
-    | 'RUTC'
-    | 'TRB1'
-    | 'TRB2'
-    | 'TRB5'
-    | 'TRB141'
-    | 'OTD';
+export type RouterTypeUnion = keyof typeof RouterType;
 
 export interface TeltonikaAdapterConfig {
     bind: string;
@@ -38,4 +26,5 @@ export interface TeltonikaAdapterConfig {
     retransmitInterval: number | string;
     retransmitCount: number | string;
     defaultQoS: number | string;
+    pollInterval: string | number;
 }

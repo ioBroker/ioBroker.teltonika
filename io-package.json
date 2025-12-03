@@ -78,12 +78,13 @@
     "password"
   ],
   "native": {
-    "port": 1883,
+    "port": 1885,
     "bind": "0.0.0.0",
     "user": "",
     "password": "",
     "timeout": 300,
     "defaultQoS": 0,
+    "pollInterval": 5000,
     "retransmitInterval": 2000,
     "retransmitCount": 10,
     "ignorePings": false

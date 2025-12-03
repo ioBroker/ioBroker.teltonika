@@ -9,9 +9,23 @@ interface MQTTPacket {
     qos: 0 | 1 | 2;
     topic: string;
     payload: Buffer;
-    messageId: string;
+    messageId: number;
     retain: boolean;
 }
+
+// Convert seconds to 1d 12:23:45
+function seconds2time(seconds: number): string {
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (d) {
+        return `${d}d ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+type StateState = 'requested' | 'received' | 'ignored';
 
 interface MQTTPacketQos2 extends MQTTPacket {
     ts?: number;
@@ -28,24 +42,25 @@ interface MQTTClient {
     on: (event: string, handler: (arg?: any) => void) => void;
     connack: (options: { returnCode: number; sessionPresent?: boolean }) => void;
     destroy: () => void;
-    puback: (options: { messageId: string }) => void;
-    pubrel: (options: { messageId: string }) => void;
-    pubrec: (options: { messageId: string }) => void;
-    pubcomp: (options: { messageId: string }) => void;
-    suback: (options: { messageId: string; granted: (0 | 1 | 2 | 128)[] }) => void;
-    unsuback: (options: { messageId: string }) => void;
+    puback: (options: { messageId: number }) => void;
+    pubrel: (options: { messageId: number }) => void;
+    pubrec: (options: { messageId: number }) => void;
+    pubcomp: (options: { messageId: number }) => void;
+    suback: (options: { messageId: number; granted: (0 | 1 | 2 | 128)[] }) => void;
+    unsuback: (options: { messageId: number }) => void;
     pingresp: () => void;
+    publish: (
+        packet: { topic: string; payload: string; qos: 0 | 1 | 2; retain?: boolean; messageId: number },
+        cb?: () => void,
+    ) => void;
     stream: {
         remoteAddress: string;
         remotePort: number;
     };
     states: {
-        [topic: string]: {
-            message: Buffer;
-            retain: boolean;
-            qos: 1 | 0 | 2;
-        };
+        [topic: string]: StateState;
     };
+    routerId?: string;
 }
 
 export default class MQTTServer {
@@ -53,10 +68,13 @@ export default class MQTTServer {
 
     private readonly server: Server;
     private readonly clients: { [id: string]: MQTTClient } = {};
+    private pollInterval: NodeJS.Timeout | null = null;
 
     private cacheAddedObjects: { [objectId: string]: boolean } = {};
     private config: TeltonikaAdapterConfig;
     private adapter: ioBroker.Adapter;
+    private messageId = 1;
+    private aliveStates: { [clientId: string]: boolean } = {};
 
     constructor(adapter: ioBroker.Adapter) {
         this.config = adapter.config as TeltonikaAdapterConfig;
@@ -66,11 +84,12 @@ export default class MQTTServer {
     }
 
     async start(): Promise<void> {
-        if (this.config.timeout === undefined) {
-            this.config.timeout = 300;
-        } else {
-            this.config.timeout = parseInt(this.config.timeout as string, 10);
-        }
+        this.config.timeout = !this.config.timeout ? 300 : parseInt(this.config.timeout as string, 10);
+        this.config.retransmitInterval = parseInt(this.config.retransmitInterval as string, 10) || 2000;
+        this.config.retransmitCount = parseInt(this.config.retransmitCount as string, 10) || 10;
+        this.config.defaultQoS = parseInt(this.config.defaultQoS as string, 10) || 0;
+        this.config.pollInterval = parseInt(this.config.pollInterval as string, 10) || 5000;
+        this.config.port = parseInt(this.config.port as string, 10) || 1883;
 
         this.server.on('connection', (stream: any): void => {
             let client: MQTTClient = mqtt(stream);
@@ -134,12 +153,14 @@ export default class MQTTServer {
                     let sessionPresent = false;
 
                     client._messages ||= [];
+                    client.states ||= {};
 
                     client.connack({ returnCode: 0, sessionPresent });
                     this.clients[client.id] = client;
                     await this.updateClients();
 
-                    await this.createClient(client);
+                    await this.readId(client);
+                    this.startPolling();
                 },
             );
 
@@ -155,43 +176,40 @@ export default class MQTTServer {
             // stream timeout
             stream.on('timeout', () => this.clientClose(client, 'timeout'));
 
-            client.on(
-                'publish',
-                async (packet: MQTTPacket): Promise<void> => {
-                    if (this.clients[client.id] && client.__secret !== this.clients[client.id].__secret) {
-                        !this.config.ignorePings &&
-                            this.adapter.log.warn(
-                                `Old client ${client.id} with secret ${client.__secret} sends publish. Ignore! Actual secret is ${this.clients[client.id].__secret}`,
-                            );
+            client.on('publish', async (packet: MQTTPacket): Promise<void> => {
+                if (this.clients[client.id] && client.__secret !== this.clients[client.id].__secret) {
+                    !this.config.ignorePings &&
+                        this.adapter.log.warn(
+                            `Old client ${client.id} with secret ${client.__secret} sends publish. Ignore! Actual secret is ${this.clients[client.id].__secret}`,
+                        );
+                    return;
+                }
+
+                if (packet.qos === 1) {
+                    // send PUBACK to a client
+                    client.puback({ messageId: packet.messageId });
+                } else if (packet.qos === 2) {
+                    const pack = client._messages?.find(e => e.messageId === packet.messageId);
+                    if (pack) {
+                        // duplicate message => ignore
+                        this.adapter.log.warn(
+                            `Client [${client.id}] ignored duplicate message with ID: ${packet.messageId}`,
+                        );
+                        return;
+                    } else {
+                        const packetQos2: MQTTPacketQos2 = packet as MQTTPacketQos2;
+                        packetQos2.ts = Date.now();
+                        packetQos2.cmd = 'pubrel';
+                        packetQos2.count = 0;
+                        client._messages.push(packetQos2);
+
+                        client.pubrec({ messageId: packet.messageId });
                         return;
                     }
+                }
 
-                    if (packet.qos === 1) {
-                        // send PUBACK to a client
-                        client.puback({ messageId: packet.messageId });
-                    } else if (packet.qos === 2) {
-                        const pack = client._messages?.find(e => e.messageId === packet.messageId);
-                        if (pack) {
-                            // duplicate message => ignore
-                            this.adapter.log.warn(
-                                `Client [${client.id}] ignored duplicate message with ID: ${packet.messageId}`,
-                            );
-                            return;
-                        } else {
-                            const packetQos2: MQTTPacketQos2 = packet as MQTTPacketQos2;
-                            packetQos2.ts = Date.now();
-                            packetQos2.cmd = 'pubrel';
-                            packetQos2.count = 0;
-                            client._messages.push(packetQos2);
-
-                            client.pubrec({ messageId: packet.messageId });
-                            return;
-                        }
-                    }
-
-                    await this.receivedTopic(packet, client);
-                },
-            );
+                await this.receivedTopic(packet, client);
+            });
 
             // response for QoS2
             client.on('pubrec', packet => {
@@ -328,7 +346,7 @@ export default class MQTTServer {
             client.on(
                 'subscribe',
                 (packet: {
-                    messageId: string;
+                    messageId: number;
                     subscriptions: {
                         qos: 0 | 1 | 2;
                     }[];
@@ -365,31 +383,76 @@ export default class MQTTServer {
 
         this.server.on('error', err => this.adapter.log.error(`Can not start Server ${err}`));
 
-        this.config.port = parseInt(this.config.port as string, 10) || 1883;
-
-        this.config.retransmitInterval = this.config.retransmitInterval || 2000;
-        this.config.retransmitCount = this.config.retransmitCount || 10;
-        this.config.defaultQoS = parseInt(this.config.defaultQoS as string, 10) || 0;
-
         // Update connection state
         await this.updateClients();
 
         // to start
-        this.server.listen(this.config.port, this.config.bind, () => {
+        this.server.listen(this.config.port, this.config.bind, () =>
             this.adapter.log.info(
                 `Starting MQTT ${this.config.user ? 'authenticated ' : ''} server on port ${this.config.port}`,
-            );
-        });
+            ),
+        );
+    }
+
+    readId(client: MQTTClient): Promise<void> {
+        return new Promise<void>(resolve =>
+            client.publish(
+                { topic: 'router/get', payload: 'id', qos: 0, retain: false, messageId: this.messageId++ },
+                () => resolve(),
+            ),
+        );
+    }
+
+    startPolling() {
+        this.pollInterval ||= setInterval(
+            async (): Promise<void> => {
+                for (const clientId in this.clients) {
+                    if (this.clients[clientId].routerId) {
+                        // poll all data
+                        for (const topic in SUPPORTED_TOPICS) {
+                            if (
+                                !this.clients[clientId].states[topic] ||
+                                this.clients[clientId].states[topic] === 'received'
+                            ) {
+                                this.clients[clientId].states[topic] ||= 'requested';
+                                await new Promise<void>(resolve =>
+                                    this.clients[clientId].publish(
+                                        {
+                                            topic: 'router/get',
+                                            payload: topic,
+                                            qos: 0,
+                                            messageId: this.messageId++,
+                                        },
+                                        () => resolve(),
+                                    ),
+                                );
+                            }
+                        }
+                    }
+                }
+            },
+            (this.config.pollInterval as number) || 5000,
+        );
+    }
+
+    stopPolling() {
+        if (this.pollInterval) {
+            if (Object.keys(this.clients).length === 0) {
+                clearInterval(this.pollInterval);
+                this.pollInterval = null;
+            }
+        }
     }
 
     async destroy(): Promise<void> {
+        if (this.pollInterval) {
+            clearInterval(this.pollInterval);
+            this.pollInterval = null;
+        }
+
         if (this.server) {
             for (const id in this.clients) {
-                await this.adapter.setForeignStateAsync(
-                    `${this.adapter.namespace}.${this.clients[id].iobId}.alive`,
-                    false,
-                    true,
-                );
+                await this.updateAlive(this.clients[id], false);
             }
             // to release all resources
             await new Promise<void>(resolve => this.server.close(() => resolve()));
@@ -399,143 +462,105 @@ export default class MQTTServer {
     private async addObject(id: string, newObj: ioBroker.StateObject | ioBroker.ChannelObject): Promise<void> {
         if (!this.cacheAddedObjects[id]) {
             this.cacheAddedObjects[id] = true;
-            const obj = await this.adapter.getForeignObjectAsync(id);
+            const obj = await this.adapter.getObjectAsync(id);
             if (!obj?.common) {
-                await this.adapter.setForeignObjectAsync(id, newObj);
+                await this.adapter.setObjectAsync(id, newObj);
                 this.adapter.log.info(`New object created: ${id}`);
             } else if (newObj.type === 'state' && obj.common.type !== newObj.common.type) {
                 obj.common.type = newObj.common.type;
-                await this.adapter.setForeignObjectAsync(id, obj);
+                await this.adapter.setObjectAsync(id, obj);
                 this.adapter.log.info(`Object updated: ${id}`);
             }
         }
     }
 
-    private async createClient(client: MQTTClient): Promise<void> {
-        let id = `${this.adapter.namespace}.${client.iobId}`;
-        await this.addObject(id, {
-            _id: id,
-            common: {
-                name: client.id,
-                desc: '',
-            },
-            native: {
-                clientId: client.id,
-            },
-            type: 'channel',
-        });
-
-        await this.addObject(`${id}.alive`, {
-            _id: `${id}.alive`,
-            common: {
-                type: 'boolean',
-                role: 'indicator.reachable',
-                read: true,
-                write: false,
-                name: `${client.id} alive`,
-            },
-            native: {},
-            type: 'state',
-        });
-    }
-
     private async updateClients() {
-        const clientIds = [];
-        if (this.clients) {
-            for (const id in this.clients) {
-                const oid = `info.clients.${id.replace(/[.\s]+/g, '_').replace(FORBIDDEN_CHARS, '_')}`;
-                clientIds.push(oid);
-                const clientObj = await this.adapter.getObjectAsync(oid);
-                if (!clientObj?.native) {
-                    await this.adapter.setObjectAsync(oid, {
-                        type: 'state',
-                        common: {
-                            name: id,
-                            role: 'indicator.reachable',
-                            type: 'boolean',
-                            read: true,
-                            write: false,
-                        },
-                        native: {
-                            ip: this.clients[id].stream.remoteAddress,
-                            port: this.clients[id].stream.remotePort,
-                        },
-                    });
-                } else {
-                    if (
-                        this.clients[id] &&
-                        (clientObj.native.port !== this.clients[id].stream.remotePort ||
-                            clientObj.native.ip !== this.clients[id].stream.remoteAddress)
-                    ) {
-                        clientObj.native.port = this.clients[id].stream.remotePort;
-                        clientObj.native.ip = this.clients[id].stream.remoteAddress;
-                        await this.adapter.setObjectAsync(clientObj._id, clientObj);
-                    }
-                }
-                await this.adapter.setStateAsync(oid, true, true);
-            }
-        }
-        // read all other states and set alive to false
-        const allStates = await this.adapter.getStatesAsync('info.clients.*');
-        for (const id in allStates) {
-            if (!clientIds.includes(id.replace(`${this.adapter.namespace}.`, ''))) {
-                await this.adapter.setStateAsync(id, { val: false, ack: true });
-            }
-        }
-
-        let text = '';
-        if (this.clients) {
-            for (let id in this.clients) {
-                text += `${text ? ',' : ''}${id}`;
-            }
-        }
-        await this.adapter.setStateAsync('info.connection', text, true);
+        await this.adapter.setStateAsync('info.connection', Object.keys(this.clients).join(','), true);
     }
 
     private async updateAlive(client: MQTTClient, alive: boolean): Promise<void> {
-        let idAlive = `${this.adapter.namespace}.${client.iobId}.alive`;
+        if (client.routerId && this.aliveStates[client.id] !== alive) {
+            await this.addObject(`${client.routerId}.alive`, {
+                _id: `${client.routerId}.${alive}`,
+                common: {
+                    name: 'Connected',
+                    role: 'indicator.connected',
+                    type: 'boolean',
+                    read: true,
+                    write: false,
+                },
+                native: {},
+                type: 'state',
 
-        const state = await this.adapter.getForeignStateAsync(idAlive);
-        if (!state || state.val !== alive) {
-            this.adapter.setForeignStateAsync(idAlive, alive, true);
+            })
+            this.aliveStates[client.id] = alive;
+            await this.adapter.setForeignStateAsync(`${this.adapter.namespace}.${client.routerId}.alive`, alive, true);
         }
     }
 
-    private receivedTopic(
-        packet: {
-            qos: 0 | 1 | 2;
-            topic: string;
-            payload: Buffer;
-            messageId: string;
-            retain: boolean;
-            ts?: number;
-            cmd?: string;
-            count?: number;
-        },
-        client: MQTTClient,
-    ): void {
+    private async receivedTopic(packet: MQTTPacketQos2, client: MQTTClient): Promise<void> {
         if (!packet) {
             return this.adapter.log.warn(`Empty packet received: ${JSON.stringify(packet)}`);
         }
 
-        client.states ||= {};
-        client.states[packet.topic] = {
-            message: packet.payload,
-            retain: packet.retain,
-            qos: packet.qos,
-        };
-
         // update alive state
-        this.updateAlive(client, true);
+        await this.updateAlive(client, true);
 
         let val = packet.payload.toString('utf8');
         this.adapter.log.debug(`Client [${client.id}] received: ${packet.topic} = ${val}`);
-
-        const parts = packet.topic.split('/');
-
-        const stateId = parts.pop();
-        // TODO
-        console.log(stateId, packet.payload);
+        if (packet.topic === 'router/id') {
+            client.routerId = val;
+            // Create channel
+            await this.addObject(val, {
+                _id: `${this.adapter.namespace}.${val}`,
+                type: 'channel',
+                common: {
+                    name: client.id,
+                    desc: `Teltonika Router ${val}`,
+                },
+                native: {},
+            });
+            this.startPolling();
+        } else {
+            const name = packet.topic.split('/').pop() || '';
+            if (SUPPORTED_TOPICS[name] && client.routerId) {
+                client.states[name] = 'received';
+                await this.addObject(`${client.routerId}.${name}`, {
+                    _id: name,
+                    type: 'state',
+                    common: SUPPORTED_TOPICS[name].common,
+                    native: {},
+                });
+                let iobValue: ioBroker.StateValue;
+                if (SUPPORTED_TOPICS[name].convert) {
+                    iobValue = SUPPORTED_TOPICS[name].convert(val);
+                } else {
+                    iobValue = val;
+                }
+                await this.adapter.setStateAsync(`${client.routerId}.${name}`, iobValue, true);
+                if (name === 'uptime') {
+                    await this.addObject(`${client.routerId}.uptimeStr`, {
+                        _id: name,
+                        type: 'state',
+                        common: {
+                            name: 'Uptime String',
+                            type: 'string',
+                            role: 'value.interval',
+                            read: true,
+                            write: false,
+                        },
+                        native: {},
+                    });
+                    await this.adapter.setStateAsync(
+                        `${client.routerId}.uptimeStr`,
+                        seconds2time(iobValue as number),
+                        true,
+                    );
+                }
+            } else {
+                this.adapter.log.warn(`Received unknown variable "${packet.topic}": ${packet.payload}`);
+            }
+        }
     }
 
     private async clientClose(client: MQTTClient, reason?: string): Promise<void> {
@@ -549,12 +574,12 @@ export default class MQTTServer {
                 await this.updateAlive(client, false);
                 delete this.clients[client.id];
                 await this.updateClients();
-                client.destroy();
-            } else {
-                client.destroy();
             }
+
+            client.destroy();
         } catch (e) {
             this.adapter.log.warn(`Client [${client.id}] cannot close client: ${e}`);
         }
+        this.stopPolling();
     }
 }

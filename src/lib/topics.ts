@@ -1,67 +1,226 @@
-import type {RouterTypeUnion} from "../types";
+import type { RouterTypeUnion } from '../types';
 
-export const SUPPORTED_TOPICS: { [topic: string]: {
-    description: string;
-    devices: RouterTypeUnion[];
-} } = {
+export const SUPPORTED_TOPICS: {
+    [topic: string]: {
+        devices: RouterTypeUnion[];
+        common: ioBroker.StateCommon;
+        convert?: (value: string) => ioBroker.StateValue;
+    };
+} = {
     id: {
-        description: "Modem IMEI",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'Modem IMEI',
+            type: 'string',
+            role: 'info.identifier',
+            read: true,
+            write: false,
+        },
     },
     temperature: {
-        description: "Temperature of the module in 0.1 degrees Celsius",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'Module Temperature',
+            desc: 'Temperature of the module in degrees Celsius',
+            type: 'number',
+            read: true,
+            unit: '°C',
+            role: 'value.temperature',
+            write: false,
+        },
+        convert: (value: string) => {
+            const num = parseInt(value, 10);
+            if (isNaN(num)) {
+                return null;
+            }
+            return num / 10;
+        },
     },
     operator: {
-        description: "Current operator’s name",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'Network Operator',
+            desc: 'Current operator’s name',
+            type: 'string',
+            role: 'info.operator',
+            read: true,
+            write: false,
+        },
     },
     signal: {
-        description: "Signal strength in dBm",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'Signal Strength',
+            desc: 'Signal strength in dBm',
+            type: 'number',
+            read: true,
+            unit: 'dBm',
+            role: 'value.signal',
+            write: false,
+        },
+        convert: (value: string) => {
+            const num = parseInt(value, 10);
+            if (isNaN(num)) {
+                return null;
+            }
+            return num;
+        },
     },
     network: {
-        description: "Network state",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'Network State',
+            desc: 'Current network state',
+            type: 'string',
+            role: 'info.status',
+            read: true,
+            write: false,
+        },
     },
     connection: {
-        description: "Current connection type (2G, 3G, 4G)",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'Connection Type',
+            desc: 'Current connection type (2G, 3G, 4G)',
+            type: 'string',
+            role: 'info.status',
+            read: true,
+            write: false,
+        },
     },
     wan: {
-        description: "WAN IP address",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'WAN IP Address',
+            desc: 'Current WAN IP address',
+            type: 'string',
+            role: 'info.ip',
+            read: true,
+            write: false,
+        },
     },
     uptime: {
-        description: "System uptime in seconds",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'System Uptime',
+            type: 'number',
+            role: 'value.interval',
+            unit: 'sec',
+            read: true,
+            write: false,
+        },
+        convert: (value: string) => {
+            const num = parseInt(value, 10);
+            if (isNaN(num)) {
+                return value;
+            }
+            return num;
+        },
     },
     name: {
-        description: "Device's device code",
-        devices: ["RUT2", "RUT9", "RUTX", "RUT3", "RUT1", "TRB1", "TRB2", "TRB5", "OTD", "RUTM", "RUTC"],
+        devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
+        common: {
+            name: 'Device Code',
+            type: 'string',
+            role: 'info.name',
+            read: true,
+            write: false,
+        },
     },
     digital1: {
-        description: "Value of digital input no. 1",
-        devices: ["RUT9"],
+        devices: ['RUT9'],
+        common: {
+            name: 'Digital Input 1',
+            type: 'boolean',
+            role: 'state',
+            read: true,
+            write: false,
+        },
+        convert: (value: string) => {
+            if (value === 'N/A') {
+                return null;
+            }
+            return value === '1' || value.toLowerCase() === 'true';
+        },
     },
     digital2: {
-        description: "Value of digital input no. 2",
-        devices: ["RUT9"],
+        devices: ['RUT9'],
+        common: {
+            name: 'Digital Input 2',
+            type: 'boolean',
+            role: 'sensor',
+            read: true,
+            write: false,
+        },
+        convert: (value: string) => {
+            if (value === 'N/A') {
+                return null;
+            }
+            return value === '1' || value.toLowerCase() === 'true';
+        },
     },
     analog: {
-        description: "Value of analog",
-        devices: ["RUT9", "TRB2", "TRB141"],
+        devices: ['RUT9', 'TRB2', 'TRB141'],
+        common: {
+            name: 'Analog Input',
+            type: 'number',
+            role: 'value',
+            read: true,
+            write: false,
+        },
+        convert: (value: string) => {
+            if (value === 'N/A') {
+                return null;
+            }
+            return parseFloat(value);
+        },
     },
     pin2: {
-        description: "Value of 2's pin state",
-        devices: ["TRB2"],
+        devices: ['TRB2'],
+        common: {
+            name: 'Pin2',
+            type: 'string',
+            role: 'state',
+            read: true,
+            write: false,
+        },
+        convert: (value: string) => {
+            if (value === 'N/A') {
+                return null;
+            }
+            return value;
+        },
     },
     pin3: {
-        description: "Value of 3's pin state",
-        devices: ["RUT1", "RUT2", "RUT9", "RUTX", "RUT3", "TRB1", "TRB2", "TRB5", "RUTM"],
+        devices: ['RUT1', 'RUT2', 'RUT9', 'RUTX', 'RUT3', 'TRB1', 'TRB2', 'TRB5', 'RUTM'],
+        common: {
+            name: 'Pin3',
+            type: 'string',
+            role: 'state',
+            read: true,
+            write: false,
+        },
+        convert: (value: string) => {
+            if (value === 'N/A') {
+                return null;
+            }
+            return value;
+        },
     },
     pin4: {
-        description: "Value of 4's pin state",
-        devices: ["RUT1", "RUT2", "RUT9", "RUTX", "RUT3", "TRB1", "TRB2", "TRB5", "RUTM"],
+        devices: ['RUT1', 'RUT2', 'RUT9', 'RUTX', 'RUT3', 'TRB1', 'TRB2', 'TRB5', 'RUTM'],
+        common: {
+            name: 'Pin4',
+            type: 'string',
+            role: 'state',
+            read: true,
+            write: false,
+        },
+        convert: (value: string) => {
+            if (value === 'N/A') {
+                return null;
+            }
+            return value;
+        },
     },
 };
