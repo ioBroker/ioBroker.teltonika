@@ -26,7 +26,7 @@
     "@iobroker/eslint-config": "^2.2.0",
     "@iobroker/legacy-testing": "^2.0.2",
     "@iobroker/testing": "^5.2.2",
-    "@iobroker/types": "^7.0.7",
+    "@iobroker/types": "^7.1.0",
     "mqtt": "^5.14.1",
     "typescript": "^5.9.3"
   },
@@ -42,13 +42,16 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node node_modules/mocha/bin/mocha --exit",
-    "release": "release-script",
-    "release-patch": "release-script patch --yes",
-    "release-minor": "release-script minor --yes",
-    "release-major": "release-script major --yes",
-    "update-packages": "npx -y npm-check-updates --upgrade",
-    "build": "tsc -p tsconfig.build.json"
+      "prepublishOnly": "npm run build",
+      "test:integration": "mocha test/*.js --exit",
+      "test": "npm run test:integration",
+      "lint": "eslint -c eslint.config.mjs",
+      "build": "tsc -p tsconfig.build.json",
+      "release": "release-script",
+      "release-patch": "release-script patch --yes",
+      "release-minor": "release-script minor --yes",
+      "release-major": "release-script major --yes",
+      "update-packages": "npx -y npm-check-updates"
   },
   "engines": {
     "node": ">=20.0.0"

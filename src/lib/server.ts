@@ -2,8 +2,8 @@ import { Server } from 'node:net';
 // @ts-expect-error no types
 import mqtt from 'mqtt-connection';
 import { SUPPORTED_TOPICS } from './topics';
-import { TeltonikaAdapterConfig } from '../types';
-const FORBIDDEN_CHARS = /[\]\[*,;'"`<>\\?]/g;
+import type { TeltonikaAdapterConfig } from '../types';
+const FORBIDDEN_CHARS = /[\][*,;'"`<>\\?]/g;
 
 interface MQTTPacket {
     qos: 0 | 1 | 2;
@@ -92,7 +92,7 @@ export default class MQTTServer {
         this.config.port = parseInt(this.config.port as string, 10) || 1883;
 
         this.server.on('connection', (stream: any): void => {
-            let client: MQTTClient = mqtt(stream);
+            const client: MQTTClient = mqtt(stream);
             // Store unique connection identifier
             client.__secret = `${Date.now()}_${Math.round(Math.random() * 10000)}`;
 
@@ -111,7 +111,7 @@ export default class MQTTServer {
                     this.mappingClients[client.iobId] = client.id;
 
                     // get possible an old client
-                    let oldClient = this.clients[client.id];
+                    const oldClient = this.clients[client.id];
 
                     if (this.config.user) {
                         if (options.password) {
@@ -150,12 +150,10 @@ export default class MQTTServer {
                         this.adapter.log.info(`Client [${client.id}] connected with secret ${client.__secret}`);
                     }
 
-                    let sessionPresent = false;
-
                     client._messages ||= [];
                     client.states ||= {};
 
-                    client.connack({ returnCode: 0, sessionPresent });
+                    client.connack({ returnCode: 0, sessionPresent: true });
                     this.clients[client.id] = client;
                     await this.updateClients();
 
@@ -196,16 +194,15 @@ export default class MQTTServer {
                             `Client [${client.id}] ignored duplicate message with ID: ${packet.messageId}`,
                         );
                         return;
-                    } else {
-                        const packetQos2: MQTTPacketQos2 = packet as MQTTPacketQos2;
-                        packetQos2.ts = Date.now();
-                        packetQos2.cmd = 'pubrel';
-                        packetQos2.count = 0;
-                        client._messages.push(packetQos2);
-
-                        client.pubrec({ messageId: packet.messageId });
-                        return;
                     }
+                    const packetQos2: MQTTPacketQos2 = packet as MQTTPacketQos2;
+                    packetQos2.ts = Date.now();
+                    packetQos2.cmd = 'pubrel';
+                    packetQos2.count = 0;
+                    client._messages.push(packetQos2);
+
+                    client.pubrec({ messageId: packet.messageId });
+                    return;
                 }
 
                 await this.receivedTopic(packet, client);
@@ -266,7 +263,7 @@ export default class MQTTServer {
             });
 
             // response for QoS2
-            client.on('pubrel', packet => {
+            client.on('pubrel', async (packet): Promise<void> => {
                 if (!client._messages) {
                     return;
                 }
@@ -290,7 +287,7 @@ export default class MQTTServer {
                 if (pos !== null) {
                     client.pubcomp({ messageId: packet.messageId });
 
-                    this.receivedTopic(client._messages[pos], client);
+                    await this.receivedTopic(client._messages[pos], client);
                     client._messages?.splice(pos, 1);
                 } else {
                     this.adapter.log.warn(
@@ -427,21 +424,21 @@ export default class MQTTServer {
         }
     }
 
-    startPolling() {
+    startPolling(): void {
         if (!this.pollInterval) {
             console.log(`${new Date().toISOString()}! START POLLING!`);
             this.polling().catch(error => this.adapter.log.error(`Polling: ${error}`));
             this.pollInterval = setInterval(
                 async (): Promise<void> => {
                     console.log(`${new Date().toISOString()}! POLLING!`);
-                    this.polling();
+                    await this.polling();
                 },
                 (this.config.pollInterval as number) || 5000,
             );
         }
     }
 
-    stopPolling() {
+    stopPolling(): void {
         if (this.pollInterval) {
             if (Object.keys(this.clients).length === 0) {
                 clearInterval(this.pollInterval);
@@ -480,7 +477,7 @@ export default class MQTTServer {
         }
     }
 
-    private async updateClients() {
+    private async updateClients(): Promise<void> {
         await this.adapter.setStateAsync('info.connection', Object.keys(this.clients).join(','), true);
     }
 
@@ -511,7 +508,7 @@ export default class MQTTServer {
         // update alive state
         await this.updateAlive(client, true);
 
-        let val = packet.payload.toString('utf8');
+        const val = packet.payload.toString('utf8');
         this.adapter.log.debug(`Client [${client.id}] received: ${packet.topic} = ${val}`);
         if (packet.topic === 'router/id') {
             client.routerId = val;
@@ -563,7 +560,7 @@ export default class MQTTServer {
                     );
                 }
             } else {
-                this.adapter.log.warn(`Received unknown variable "${packet.topic}": ${packet.payload}`);
+                this.adapter.log.warn(`Received unknown variable "${packet.topic}": ${packet.payload.toString()}`);
             }
         }
     }
