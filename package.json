@@ -1,7 +1,7 @@
 {
   "name": "iobroker.teltonika",
   "description": "The adapter reads data from Teltonika routers via MQTT and provides it in ioBroker.",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "author": "bluefox <dogafox@gmail.com>",
   "homepage": "https://github.com/ioBroker/ioBroker.teltonika",
   "repository": {
@@ -42,17 +42,17 @@
     "LICENSE"
   ],
   "scripts": {
-      "prepublishOnly": "npm run build",
-      "test:integration": "mocha test/adapter.test.js --exit",
-      "test:package": "mocha test/package.test.js --exit",
-      "test": "npm run test:integration",
-      "lint": "eslint -c eslint.config.mjs",
-      "build": "tsc -p tsconfig.build.json",
-      "release": "release-script",
-      "release-patch": "release-script patch --yes",
-      "release-minor": "release-script minor --yes",
-      "release-major": "release-script major --yes",
-      "update-packages": "npx -y npm-check-updates"
+    "prepublishOnly": "npm run build",
+    "test:integration": "mocha test/adapter.test.js --exit",
+    "test:package": "mocha test/package.test.js --exit",
+    "test": "npm run test:integration",
+    "lint": "eslint -c eslint.config.mjs",
+    "build": "tsc -p tsconfig.build.json",
+    "release": "release-script",
+    "release-patch": "release-script patch --yes",
+    "release-minor": "release-script minor --yes",
+    "release-major": "release-script major --yes",
+    "update-packages": "npx -y npm-check-updates"
   },
   "engines": {
     "node": ">=20.0.0"

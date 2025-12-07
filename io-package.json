@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "teltonika",
-    "version": "0.0.2",
+    "version": "0.1.0",
     "news": {
+      "0.1.0": {
+        "en": "Changed roles of the states",
+        "de": "Änderte Rollen der Staaten",
+        "ru": "Изменились роли государств",
+        "pt": "Funções alteradas dos Estados",
+        "nl": "Veranderde rol van de staten",
+        "fr": "Changement des rôles des États",
+        "it": "I ruoli cambiati degli stati",
+        "es": "Funciones modificadas de los estados",
+        "pl": "Zmiana ról państw",
+        "uk": "Змінені ролі держав",
+        "zh-cn": "改变各州的作用"
+      },
       "0.0.2": {
         "en": "initial commit",
         "de": "erstbestellung",
