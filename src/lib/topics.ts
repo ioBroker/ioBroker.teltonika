@@ -12,7 +12,7 @@ export const SUPPORTED_TOPICS: {
         common: {
             name: 'Modem IMEI',
             type: 'string',
-            role: 'info.identifier',
+            role: 'info.model',
             read: true,
             write: false,
         },
@@ -42,7 +42,7 @@ export const SUPPORTED_TOPICS: {
             name: 'Network Operator',
             desc: 'Current operator’s name',
             type: 'string',
-            role: 'info.operator',
+            role: 'info',
             read: true,
             write: false,
         },
@@ -55,7 +55,7 @@ export const SUPPORTED_TOPICS: {
             type: 'number',
             read: true,
             unit: 'dBm',
-            role: 'value.signal',
+            role: 'value',
             write: false,
         },
         convert: (value: string) => {
@@ -132,7 +132,7 @@ export const SUPPORTED_TOPICS: {
         common: {
             name: 'Digital Input 1',
             type: 'boolean',
-            role: 'state',
+            role: 'sensor',
             read: true,
             write: false,
         },
@@ -179,7 +179,7 @@ export const SUPPORTED_TOPICS: {
         devices: ['TRB2'],
         common: {
             name: 'Pin2',
-            type: 'string',
+            type: 'mixed',
             role: 'state',
             read: true,
             write: false,
@@ -195,7 +195,7 @@ export const SUPPORTED_TOPICS: {
         devices: ['RUT1', 'RUT2', 'RUT9', 'RUTX', 'RUT3', 'TRB1', 'TRB2', 'TRB5', 'RUTM'],
         common: {
             name: 'Pin3',
-            type: 'string',
+            type: 'mixed',
             role: 'state',
             read: true,
             write: false,
@@ -211,7 +211,7 @@ export const SUPPORTED_TOPICS: {
         devices: ['RUT1', 'RUT2', 'RUT9', 'RUTX', 'RUT3', 'TRB1', 'TRB2', 'TRB5', 'RUTM'],
         common: {
             name: 'Pin4',
-            type: 'string',
+            type: 'mixed',
             role: 'state',
             read: true,
             write: false,
