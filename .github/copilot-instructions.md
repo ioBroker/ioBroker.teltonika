@@ -12,8 +12,8 @@ This is an ioBroker adapter for Sonoff/Tasmota devices that enables MQTT communi
   - `server.ts` - Main MQTT server implementation
 - `main.ts` - Adapter entry point
 - `test/` - Test files
-  - `testServer.js` - Integration tests for MQTT message processing
-  - `testPackageFiles.js` - Validates package.json and io-package.json
+  - `adapter.test.js` - Integration tests for MQTT message processing
+  - `package.test.js` - Validates package.json and io-package.json
 
 ## Key Concepts
 
@@ -32,7 +32,7 @@ The adapter processes MQTT messages from Tasmota devices:
 - `cmnd/*` - Commands to devices
 
 ### Testing
-Tests in `testServer.js` use a mock MQTT setup with predefined message rules that verify:
+Tests in `adapter.test.js` use a mock MQTT setup with predefined message rules that verify:
 - MQTT messages are correctly parsed
 - Datapoints are created with expected values
 - State changes trigger correct MQTT publications
@@ -40,7 +40,7 @@ Tests in `testServer.js` use a mock MQTT setup with predefined message rules tha
 ## Development Guidelines
 
 1. **Adding New Datapoints**: Update `lib/datapoints.js` with proper type definitions
-2. **Testing**: Add corresponding test cases in `testServer.js` with real MQTT message examples
+2. **Testing**: Add corresponding test cases in `adapter.test.js` with real MQTT message examples
 3. **Translations**: Update admin UI translations in `admin/i18n/*/translations.json`
 4. **Changelog**: Add entries to README.md under `### **WORK IN PROGRESS**` section for user-facing changes. DO NOT modify `io-package.json` news section as it's automatically updated during releases
 5. **Compatibility**: Maintain backward compatibility with existing Tasmota configurations
