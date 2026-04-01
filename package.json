@@ -28,7 +28,7 @@
     "@iobroker/testing": "^5.2.2",
     "@iobroker/types": "^7.1.0",
     "mqtt": "^5.14.1",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.teltonika/issues"
