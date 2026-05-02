@@ -48,6 +48,9 @@ Steps:
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+- (copilot) Adapter requires node.js >= 22 now
+
 ### 0.1.0 (2025-12-07)
 * (bluefox) Changed roles of the states
 
