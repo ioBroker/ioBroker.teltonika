@@ -54,6 +54,8 @@ Steps:
 ### 0.0.2 (2025-12-03)
 * (bluefox) initial commit
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 
 The MIT License (MIT)
