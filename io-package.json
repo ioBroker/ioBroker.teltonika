@@ -66,6 +66,7 @@
     "platform": "Javascript/Node.js",
     "mode": "daemon",
     "compact": true,
+    "messagebox": true,
     "enabled": true,
     "readme": "https://github.com/ioBroker/ioBroker.teltonika/blob/master/README.md",
     "loglevel": "info",
@@ -74,10 +75,11 @@
       "config": "json"
     },
     "keywords": [
-      "ITEAD",
+      "Teltonika",
       "MQTT",
-      "Sonoff",
-      "Tasmota"
+      "router",
+      "RUT",
+      "TRB"
     ],
     "nogit": true,
     "connectionType": "local",
@@ -102,7 +104,13 @@
     }
   },
   "encryptedNative": [
-    "password"
+    "password",
+    "snmpDevices.community",
+    "snmpDevices.writeCommunity",
+    "snmpDevices.authKey",
+    "snmpDevices.privKey",
+    "trapCommunity",
+    "scanCommunity"
   ],
   "protectedNative": [
     "password"
@@ -117,7 +125,17 @@
     "pollInterval": 5000,
     "retransmitInterval": 2000,
     "retransmitCount": 10,
-    "ignorePings": false
+    "ignorePings": false,
+    "scanRange": "192.168.1.0/24",
+    "scanVersion": "v2c",
+    "scanCommunity": "public",
+    "snmpDevices": [],
+    "snmpGps": false,
+    "snmpWireless": false,
+    "snmpHotspot": false,
+    "trapsEnabled": false,
+    "trapPort": 162,
+    "trapCommunity": "public"
   },
   "objects": [],
   "instanceObjects": [

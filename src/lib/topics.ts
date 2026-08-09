@@ -1,5 +1,25 @@
 import type { RouterTypeUnion } from '../types';
 
+const IPV4 = /^\d{1,3}(?:\.\d{1,3}){3}$/;
+
+/**
+ * The modem address arrives as a space separated list holding both families, for example
+ * `10.176.1.2 2a02:3032:22e:28f2:ed34:bfb:6222:4803`.
+ */
+function addressList(raw: string): string[] {
+    return raw.split(/\s+/).filter(part => part.length && part !== 'N/A');
+}
+
+/** The address for the `info.ip` role, which expects a single value. IPv4 wins, since scripts expect it. */
+export function extractIPv4(raw: string): string | null {
+    const parts = addressList(raw);
+    return parts.find(part => IPV4.test(part)) || parts[0] || null;
+}
+
+export function extractIPv6(raw: string): string | null {
+    return addressList(raw).find(part => part.includes(':')) || null;
+}
+
 export const SUPPORTED_TOPICS: {
     [topic: string]: {
         devices: RouterTypeUnion[];
@@ -92,12 +112,15 @@ export const SUPPORTED_TOPICS: {
         devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],
         common: {
             name: 'WAN IP Address',
-            desc: 'Current WAN IP address',
+            // The device reports the address assigned to the modem. On these routers that is the WAN address in
+            // all but the wired-WAN case, which is why the datapoint keeps its established name.
+            desc: 'Current WAN IP address of the modem',
             type: 'string',
             role: 'info.ip',
             read: true,
             write: false,
         },
+        convert: extractIPv4,
     },
     uptime: {
         devices: ['RUT2', 'RUT9', 'RUTX', 'RUT3', 'RUT1', 'TRB1', 'TRB2', 'TRB5', 'OTD', 'RUTM', 'RUTC'],

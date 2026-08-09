@@ -6,3 +6,5 @@ admin/i18n/flat.txt
 iob_npm.done
 *.tgz
 build/
+# Vendor MIBs, only needed to run `npm run generate-oids`. The generated table is checked in.
+MIBs/

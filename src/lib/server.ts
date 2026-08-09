@@ -2,6 +2,7 @@ import { Server } from 'node:net';
 // @ts-expect-error no types
 import mqtt from 'mqtt-connection';
 import { SUPPORTED_TOPICS } from './topics';
+import type DeviceStates from './states';
 import type { TeltonikaAdapterConfig } from '../types';
 const FORBIDDEN_CHARS = /[\][*,;'"`<>\\?]/g;
 
@@ -11,18 +12,6 @@ interface MQTTPacket {
     payload: Buffer;
     messageId: number;
     retain: boolean;
-}
-
-// Convert seconds to 1d 12:23:45
-function seconds2time(seconds: number): string {
-    const d = Math.floor(seconds / (3600 * 24));
-    const h = Math.floor((seconds % (3600 * 24)) / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    if (d) {
-        return `${d}d ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
 type StateState = 'requested' | 'received' | 'ignored';
@@ -70,16 +59,16 @@ export default class MQTTServer {
     private readonly clients: { [id: string]: MQTTClient } = {};
     private pollInterval: NodeJS.Timeout | null = null;
 
-    private cacheAddedObjects: { [objectId: string]: boolean } = {};
     private config: TeltonikaAdapterConfig;
     private adapter: ioBroker.Adapter;
+    private readonly states: DeviceStates;
     private messageId = 1;
-    private aliveStates: { [clientId: string]: boolean } = {};
 
-    constructor(adapter: ioBroker.Adapter) {
+    constructor(adapter: ioBroker.Adapter, states: DeviceStates) {
         this.config = adapter.config as TeltonikaAdapterConfig;
         this.server = new Server();
         this.adapter = adapter;
+        this.states = states;
         this.start().catch(error => this.adapter.log.error(`Cannot start broker: ${error}`));
     }
 
@@ -195,7 +184,7 @@ export default class MQTTServer {
                         );
                         return;
                     }
-                    const packetQos2: MQTTPacketQos2 = packet as MQTTPacketQos2;
+                    const packetQos2: MQTTPacketQos2 = packet;
                     packetQos2.ts = Date.now();
                     packetQos2.cmd = 'pubrel';
                     packetQos2.count = 0;
@@ -462,41 +451,14 @@ export default class MQTTServer {
         }
     }
 
-    private async addObject(id: string, newObj: ioBroker.StateObject | ioBroker.ChannelObject): Promise<void> {
-        if (!this.cacheAddedObjects[id]) {
-            this.cacheAddedObjects[id] = true;
-            const obj = await this.adapter.getObjectAsync(id);
-            if (!obj?.common) {
-                await this.adapter.setObjectAsync(id, newObj);
-                this.adapter.log.info(`New object created: ${id}`);
-            } else if (newObj.type === 'state' && obj.common.type !== newObj.common.type) {
-                obj.common.type = newObj.common.type;
-                await this.adapter.setObjectAsync(id, obj);
-                this.adapter.log.info(`Object updated: ${id}`);
-            }
-        }
-    }
-
     private async updateClients(): Promise<void> {
         await this.adapter.setStateAsync('info.connection', Object.keys(this.clients).join(','), true);
     }
 
     private async updateAlive(client: MQTTClient, alive: boolean): Promise<void> {
-        if (client.routerId && this.aliveStates[client.id] !== alive) {
-            await this.addObject(`${client.routerId}.alive`, {
-                _id: `${client.routerId}.${alive}`,
-                common: {
-                    name: 'Connected',
-                    role: 'indicator.connected',
-                    type: 'boolean',
-                    read: true,
-                    write: false,
-                },
-                native: {},
-                type: 'state',
-            });
-            this.aliveStates[client.id] = alive;
-            await this.adapter.setForeignStateAsync(`${this.adapter.namespace}.${client.routerId}.alive`, alive, true);
+        // Before the router has answered `router/id` there is no device to mark alive yet
+        if (client.routerId && this.states.claim(client.routerId, 'mqtt')) {
+            await this.states.setAlive(client.routerId, alive);
         }
     }
 
@@ -512,52 +474,17 @@ export default class MQTTServer {
         this.adapter.log.debug(`Client [${client.id}] received: ${packet.topic} = ${val}`);
         if (packet.topic === 'router/id') {
             client.routerId = val;
-            // Create channel
-            await this.addObject(val, {
-                _id: `${this.adapter.namespace}.${val}`,
-                type: 'channel',
-                common: {
-                    name: client.id,
-                    desc: `Teltonika Router ${val}`,
-                },
-                native: {},
-            });
+            if (this.states.claim(val, 'mqtt')) {
+                await this.states.ensureDevice(val, client.id);
+            }
             this.startPolling();
         } else {
             const name = packet.topic.split('/').pop() || '';
             if (SUPPORTED_TOPICS[name] && client.routerId) {
                 client.states[name] = 'received';
-                await this.addObject(`${client.routerId}.${name}`, {
-                    _id: name,
-                    type: 'state',
-                    common: SUPPORTED_TOPICS[name].common,
-                    native: {},
-                });
-                let iobValue: ioBroker.StateValue;
-                if (SUPPORTED_TOPICS[name].convert) {
-                    iobValue = SUPPORTED_TOPICS[name].convert(val);
-                } else {
-                    iobValue = val;
-                }
-                await this.adapter.setStateAsync(`${client.routerId}.${name}`, iobValue, true);
-                if (name === 'uptime') {
-                    await this.addObject(`${client.routerId}.uptimeStr`, {
-                        _id: name,
-                        type: 'state',
-                        common: {
-                            name: 'Uptime String',
-                            type: 'string',
-                            role: 'value.interval',
-                            read: true,
-                            write: false,
-                        },
-                        native: {},
-                    });
-                    await this.adapter.setStateAsync(
-                        `${client.routerId}.uptimeStr`,
-                        seconds2time(iobValue as number),
-                        true,
-                    );
+                // Skipped when the same device is polled over SNMP, so the two transports cannot fight
+                if (this.states.claim(client.routerId, 'mqtt')) {
+                    await this.states.applyValue(client.routerId, name, val);
                 }
             } else {
                 this.adapter.log.warn(`Received unknown variable "${packet.topic}": ${packet.payload.toString()}`);
@@ -574,6 +501,9 @@ export default class MQTTServer {
             if (this.clients[client.id] && client.__secret === this.clients[client.id].__secret) {
                 this.adapter.log.info(`Client [${client.id}] connection closed: ${reason}`);
                 await this.updateAlive(client, false);
+                if (client.routerId) {
+                    this.states.release(client.routerId, 'mqtt');
+                }
                 delete this.clients[client.id];
                 await this.updateClients();
             }

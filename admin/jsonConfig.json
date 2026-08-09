@@ -1,120 +1,391 @@
 {
-    "type": "panel",
+    "type": "tabs",
     "i18n": true,
     "items": {
-        "_header1": {
-            "type": "header",
-            "text": "Connection settings",
-            "size": 3,
-            "xs": 12,
-            "sm": 12
+        "mqttTab": {
+            "type": "panel",
+            "label": "MQTT",
+            "items": {
+                "_header1": {
+                    "type": "header",
+                    "text": "Connection settings",
+                    "size": 3,
+                    "xs": 12,
+                    "sm": 12
+                },
+                "bind": {
+                    "newLine": true,
+                    "type": "ip",
+                    "label": "IP",
+                    "listenOnAllPorts": true,
+                    "xs": 12,
+                    "sm": 10,
+                    "md": 8,
+                    "lg": 3
+                },
+                "port": {
+                    "label": "Port",
+                    "type": "number",
+                    "min": 1,
+                    "max": 65535,
+                    "xs": 12,
+                    "sm": 2,
+                    "md": 2,
+                    "lg": 1
+                },
+                "timeout": {
+                    "label": "Client timeout",
+                    "help": "in seconds",
+                    "type": "number",
+                    "min": 1,
+                    "max": 99999,
+                    "xs": 12,
+                    "sm": 10,
+                    "md": 2,
+                    "lg": 1
+                },
+                "_header2": {
+                    "newLine": true,
+                    "type": "header",
+                    "text": "Authentication settings",
+                    "size": 3,
+                    "xs": 12,
+                    "sm": 12
+                },
+                "user": {
+                    "newLine": true,
+                    "type": "text",
+                    "label": "User",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 2
+                },
+                "password": {
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 8,
+                    "lg": 4,
+                    "type": "password",
+                    "label": "Password",
+                    "repeat": true
+                },
+                "_header4": {
+                    "newLine": true,
+                    "type": "header",
+                    "text": "Other settings",
+                    "size": 3,
+                    "xs": 12,
+                    "sm": 12
+                },
+                "ignorePings": {
+                    "newLine": true,
+                    "type": "checkbox",
+                    "label": "Ignore warnings with pingreq",
+                    "xs": 12,
+                    "sm": 12
+                },
+                "pollInterval": {
+                    "newLine": true,
+                    "type": "number",
+                    "label": "Poll interval",
+                    "help": "in milliseconds",
+                    "min": 1000,
+                    "max": 60000,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 2
+                }
+            }
         },
-        "bind": {
-            "newLine": true,
-            "type": "ip",
-            "label": "IP",
-            "listenOnAllPorts": true,
-            "xs": 12,
-            "sm": 10,
-            "md": 8,
-            "lg": 3
-        },
-        "port": {
-            "label": "Port",
-            "type": "number",
-            "min": 1,
-            "max": 65535,
-            "xs": 12,
-            "sm": 2,
-            "md": 2,
-            "lg": 1
-        },
-        "timeout": {
-            "label": "Client timeout",
-            "help": "in seconds",
-            "type": "number",
-            "min": 1,
-            "max": 99999,
-            "xs": 12,
-            "sm": 10,
-            "md": 2,
-            "lg": 1
-        },
-        "_header2": {
-            "newLine": true,
-            "type": "header",
-            "text": "Authentication settings",
-            "size": 3,
-            "xs": 12,
-            "sm": 12
-        },
-        "user": {
-            "newLine": true,
-            "type": "text",
-            "label": "User",
-            "xs": 12,
-            "sm": 12,
-            "md": 4,
-            "lg": 2
-        },
-        "password": {
-            "xs": 12,
-            "sm": 12,
-            "md": 8,
-            "lg": 4,
-            "type": "password",
-            "label": "Password",
-            "repeat": true
-        },
-        "routerType": {
-            "type": "select",
-            "label": "Router Type",
-            "noTranslation": true,
-            "options": [
-                { "label": "RUT1", "value": "RUT1" },
-                { "label": "RUT2", "value": "RUT2" },
-                { "label": "RUT3", "value": "RUT3" },
-                { "label": "RUT9", "value": "RUT9" },
-                { "label": "RUTX", "value": "RUTX" },
-                { "label": "RUTM", "value": "RUTM" },
-                { "label": "RUTC", "value": "RUTC" },
-                { "label": "TRB1", "value": "TRB1" },
-                { "label": "TRB2", "value": "TRB2" },
-                { "label": "TRB5", "value": "TRB5" },
-                { "label": "TRB141", "value": "TRB141" },
-                { "label": "OTD", "val": "OTD" }
-            ],
-            "xs": 12,
-            "sm": 12,
-            "md": 4,
-            "lg": 2
-        },
-        "_header4": {
-            "newLine": true,
-            "type": "header",
-            "text": "Other settings",
-            "size": 3,
-            "xs": 12,
-            "sm": 12
-        },
-        "ignorePings": {
-            "newLine": true,
-            "type": "checkbox",
-            "label": "Ignore warnings with pingreq",
-            "xs": 12,
-            "sm": 12
-        },
-        "pollInterval": {
-            "newLine": true,
-            "type": "number",
-            "label": "Poll interval",
-            "help": "in milliseconds",
-            "min": 1000,
-            "max": 60000,
-            "xs": 12,
-            "sm": 12,
-            "md": 4,
-            "lg": 2
+        "snmpTab": {
+            "type": "panel",
+            "label": "SNMP",
+            "items": {
+                "_headerScan": {
+                    "type": "header",
+                    "text": "Network scan",
+                    "size": 3,
+                    "xs": 12,
+                    "sm": 12
+                },
+                "_scanHint": {
+                    "newLine": true,
+                    "type": "staticText",
+                    "text": "Devices without an MQTT publisher, such as the TSW switches, can only be read over SNMP. Enable the SNMP agent on the device first.",
+                    "xs": 12,
+                    "sm": 12
+                },
+                "scanRange": {
+                    "newLine": true,
+                    "type": "text",
+                    "label": "Address range",
+                    "help": "For example 192.168.1.0/24 or 192.168.1.10-192.168.1.40",
+                    "default": "192.168.1.0/24",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 5,
+                    "lg": 3
+                },
+                "scanVersion": {
+                    "type": "select",
+                    "label": "Version",
+                    "noTranslation": true,
+                    "default": "v2c",
+                    "options": [
+                        { "label": "v1", "value": "v1" },
+                        { "label": "v2c", "value": "v2c" }
+                    ],
+                    "xs": 12,
+                    "sm": 4,
+                    "md": 2,
+                    "lg": 1
+                },
+                "scanCommunity": {
+                    "type": "text",
+                    "label": "Community",
+                    "default": "public",
+                    "xs": 12,
+                    "sm": 8,
+                    "md": 3,
+                    "lg": 2
+                },
+                "_scan": {
+                    "type": "sendTo",
+                    "command": "scan",
+                    "jsonData": "{\"range\": \"${data.scanRange}\", \"community\": \"${data.scanCommunity}\", \"version\": \"${data.scanVersion}\"}",
+                    "label": "Scan",
+                    "variant": "contained",
+                    "showProcess": true,
+                    "useNative": true,
+                    "timeout": 120000,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 2,
+                    "lg": 2
+                },
+                "_headerDevices": {
+                    "newLine": true,
+                    "type": "header",
+                    "text": "SNMP devices",
+                    "size": 3,
+                    "xs": 12,
+                    "sm": 12
+                },
+                "snmpDevices": {
+                    "newLine": true,
+                    "type": "table",
+                    "xs": 12,
+                    "sm": 12,
+                    "items": [
+                        {
+                            "type": "checkbox",
+                            "attr": "enabled",
+                            "title": "Active",
+                            "width": "70px",
+                            "default": true
+                        },
+                        {
+                            "type": "text",
+                            "attr": "host",
+                            "title": "IP address",
+                            "width": "160px",
+                            "sort": true,
+                            "filter": true,
+                            "default": ""
+                        },
+                        {
+                            "type": "number",
+                            "attr": "port",
+                            "title": "Port",
+                            "width": "90px",
+                            "min": 1,
+                            "max": 65535,
+                            "default": 161
+                        },
+                        {
+                            "type": "select",
+                            "attr": "version",
+                            "title": "Version",
+                            "width": "100px",
+                            "noTranslation": true,
+                            "default": "v2c",
+                            "options": [
+                                { "label": "v1", "value": "v1" },
+                                { "label": "v2c", "value": "v2c" },
+                                { "label": "v3", "value": "v3" }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "attr": "community",
+                            "title": "Community",
+                            "width": "130px",
+                            "default": "public"
+                        },
+                        {
+                            "type": "text",
+                            "attr": "writeCommunity",
+                            "title": "Write community",
+                            "width": "150px",
+                            "default": ""
+                        },
+                        {
+                            "type": "text",
+                            "attr": "user",
+                            "title": "User",
+                            "width": "130px",
+                            "default": ""
+                        },
+                        {
+                            "type": "select",
+                            "attr": "authProtocol",
+                            "title": "Auth protocol",
+                            "width": "110px",
+                            "noTranslation": true,
+                            "default": "sha",
+                            "options": [
+                                { "label": "SHA", "value": "sha" },
+                                { "label": "MD5", "value": "md5" }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "attr": "authKey",
+                            "title": "Auth key",
+                            "width": "130px",
+                            "default": ""
+                        },
+                        {
+                            "type": "select",
+                            "attr": "privProtocol",
+                            "title": "Priv protocol",
+                            "width": "110px",
+                            "noTranslation": true,
+                            "default": "aes",
+                            "options": [
+                                { "label": "AES", "value": "aes" },
+                                { "label": "DES", "value": "des" }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "attr": "privKey",
+                            "title": "Priv key",
+                            "width": "130px",
+                            "default": ""
+                        },
+                        {
+                            "type": "number",
+                            "attr": "pollInterval",
+                            "title": "Poll interval",
+                            "width": "120px",
+                            "min": 5000,
+                            "max": 3600000,
+                            "default": 30000
+                        }
+                    ]
+                },
+                "_headerBranches": {
+                    "newLine": true,
+                    "type": "header",
+                    "text": "Optional data",
+                    "size": 3,
+                    "xs": 12,
+                    "sm": 12
+                },
+                "_branchHint": {
+                    "newLine": true,
+                    "type": "staticText",
+                    "text": "These are off by default: they expose the device location and identifiable clients, and the wireless tables change with every poll.",
+                    "xs": 12,
+                    "sm": 12
+                },
+                "snmpGps": {
+                    "newLine": true,
+                    "type": "checkbox",
+                    "label": "GPS position",
+                    "default": false,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 3
+                },
+                "snmpWireless": {
+                    "type": "checkbox",
+                    "label": "Wi-Fi radios and networks",
+                    "default": false,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 3
+                },
+                "snmpHotspot": {
+                    "type": "checkbox",
+                    "label": "Hotspot sessions",
+                    "default": false,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 3
+                },
+                "_headerTraps": {
+                    "newLine": true,
+                    "type": "header",
+                    "text": "Traps",
+                    "size": 3,
+                    "xs": 12,
+                    "sm": 12
+                },
+                "_trapHint": {
+                    "newLine": true,
+                    "type": "staticText",
+                    "text": "Configure the device to send traps to this host under Services → SNMP → Trap Settings. Most Teltonika traps carry no values, so a trap is recorded and triggers an immediate poll of that device.",
+                    "xs": 12,
+                    "sm": 12
+                },
+                "trapsEnabled": {
+                    "newLine": true,
+                    "type": "checkbox",
+                    "label": "Receive traps",
+                    "default": false,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 3
+                },
+                "trapPort": {
+                    "type": "number",
+                    "label": "Port",
+                    "help": "162 requires root on Linux",
+                    "min": 1,
+                    "max": 65535,
+                    "default": 162,
+                    "hidden": "!data.trapsEnabled",
+                    "xs": 12,
+                    "sm": 4,
+                    "md": 2,
+                    "lg": 1
+                },
+                "trapCommunity": {
+                    "type": "text",
+                    "label": "Community",
+                    "default": "public",
+                    "hidden": "!data.trapsEnabled",
+                    "xs": 12,
+                    "sm": 8,
+                    "md": 3,
+                    "lg": 2
+                },
+                "_credentialHint": {
+                    "newLine": true,
+                    "type": "staticText",
+                    "text": "Community strings and SNMPv3 keys in this table are stored encrypted with the system secret. Anyone with access to the ioBroker host can still read them, so grant no more rights than the adapter needs.",
+                    "xs": 12,
+                    "sm": 12
+                }
+            }
         }
     }
 }

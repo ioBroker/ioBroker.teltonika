@@ -32,9 +32,7 @@ jobs:
     steps:
       - uses: ioBroker/testing-action-check@v1
         with:
-          node-version: '22.x'
-          # Uncomment the following line if your adapter cannot be installed using 'npm ci'
-          # install-command: 'npm install'
+          node-version: '24.x'
           lint: true
 
   # Runs adapter tests on all supported node versions and OSes
@@ -46,11 +44,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
       - uses: ioBroker/testing-action-adapter@v1
         with:
+          os: 'ubuntu-latest'
+          node-version: ${{ matrix.node-version }}
           build: true
 
   # Deploys the final package to NPM
@@ -73,24 +73,6 @@ jobs:
     steps:
       - uses: ioBroker/testing-action-deploy@v1
         with:
-          node-version: '22.x'
+          node-version: '24.x'
           build: true
-          # Uncomment the following line if your adapter cannot be installed using 'npm ci'
-          # install-command: 'npm install'
-          # npm-token: ${{ secrets.NPM_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-        #      - name: Notify Sentry.io about the release
-        #        run: |
-        #          npm i -g @sentry/cli
-        #          export SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-        #          export SENTRY_URL=https://sentry.iobroker.net
-        #          export SENTRY_ORG=iobroker
-        #          export SENTRY_PROJECT=iobroker-serial-gps
-        #          export SENTRY_VERSION=iobroker.serial-gps@${{ steps.extract_release.outputs.VERSION }}
-        #          sentry-cli releases new $SENTRY_VERSION
-        #          sentry-cli releases set-commits $SENTRY_VERSION --auto
-        #          sentry-cli releases finalize $SENTRY_VERSION
-
-        # Add the following line BEFORE finalize if sourcemap uploads are needed
-        # sentry-cli releases files $SENTRY_VERSION upload-sourcemaps build/

@@ -111,7 +111,15 @@ describe('Teltonika server: Test mqtt server', () => {
                 systemConfig.native.secret = '12345';
                 await setup.setObject('system.config', systemConfig);
             }
-            const config = await setup.getAdapterConfig();
+            // setupController packs and uploads the adapter but never adds an instance, so on a fresh database
+            // system.adapter.teltonika.0 is missing and getAdapterConfig() returns an empty object. Guarded,
+            // because "iobroker add" allocates the next free number: calling it unconditionally would leave a
+            // new instance behind on every run.
+            let config = await setup.getAdapterConfig();
+            if (!config?.common) {
+                await setup.installAdapter();
+                config = await setup.getAdapterConfig();
+            }
             // enable adapter
             config.common.enabled = true;
             config.common.loglevel = 'debug';
@@ -120,7 +128,9 @@ describe('Teltonika server: Test mqtt server', () => {
 
             await setup.setAdapterConfig(config.common, config.native);
 
-            setup.startController((_objects, _states) => {
+            // Pass the explicit `isStartAdapter` flag: with a single function argument legacy-testing 3.x takes it
+            // for an object change handler and never calls back, which hangs this hook until mocha times out.
+            setup.startController(true, (_objects, _states) => {
                 objects = _objects;
                 states = _states;
                 brokerStarted = true;
