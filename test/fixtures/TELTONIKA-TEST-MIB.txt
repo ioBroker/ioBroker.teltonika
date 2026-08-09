@@ -1,0 +1,146 @@
+-- Reduced stand-in for the MIB a Teltonika device offers under SNMP -> System Summary.
+-- Structured after the real TELTONIKA-MIB, trimmed to the cases the parser has to survive.
+
+TELTONIKA-TEST-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    OBJECT-TYPE, MODULE-IDENTITY, Integer32, enterprises, Counter32
+        FROM SNMPv2-SMI
+    DisplayString
+        FROM SNMPv2-TC;
+
+teltonika MODULE-IDENTITY
+    LAST-UPDATED "201307240000Z"
+    ORGANIZATION "TELTONIKA"
+    CONTACT-INFO "TELTONIKA"
+    DESCRIPTION
+            "The MIB module for TELTONIKA routers."
+    REVISION      "201307240000Z"
+    DESCRIPTION
+            "Initial version"
+    ::= { enterprises 48690 }
+
+-- Deliberately declared before the group it hangs off, so the resolver has to iterate
+Signal OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Signal strength. Beware: this text contains ::= { bogus 99 } and a -- comment
+            marker plus braces { } purely to trip up a naive parser."
+    ::= { gsm 4 }
+
+static   OBJECT IDENTIFIER ::= { teltonika 1 }
+gsm      OBJECT IDENTIFIER ::= { teltonika 2 }
+io       OBJECT IDENTIFIER ::= { teltonika 5 }
+ports    OBJECT IDENTIFIER ::= { teltonika 7 }
+
+ModemImei OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "RUT9xx modem IMEI"
+    ::= { static 1 }
+
+RouterName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Device hostname"
+    ::= { static 7 }
+
+Temperature OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Module thermal reading in 0.1 degrees Celsius"
+    ::= { gsm 9 }
+
+-- Enumeration braces sit in front of the assignment and must not be mistaken for it
+ConnectionState OBJECT-TYPE
+    SYNTAX      INTEGER { disconnected(0), connecting(1), connected(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Data session state"
+    ::= { gsm 7 }
+
+DigitalInput OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Digital input pin state"
+    ::= { io 1 }
+
+-- Switch style per-port statistics
+portTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF PortEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "Per port counters"
+    ::= { ports 1 }
+
+portEntry OBJECT-TYPE
+    SYNTAX      PortEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "One row per physical port"
+    INDEX   { portIndex }
+    ::= { portTable 1 }
+
+portIndex OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Port number"
+    ::= { portEntry 1 }
+
+portRxBytes OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Bytes received on this port"
+    ::= { portEntry 2 }
+
+portTxBytes OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Bytes transmitted on this port"
+    ::= { portEntry 3 }
+
+-- Traps. Most Teltonika notifications carry no OBJECTS at all, one does.
+notifications OBJECT IDENTIFIER ::= { teltonika 4 }
+
+signalChangeNotification NOTIFICATION-TYPE
+    OBJECTS     { Signal }
+    STATUS      current
+    DESCRIPTION
+            "Signal strength trap"
+    ::= { notifications 1 }
+
+digitalInputNotification NOTIFICATION-TYPE
+    STATUS      current
+    DESCRIPTION
+            "Digital input trap"
+    ::= { notifications 2 }
+
+-- Anchored at a name this module never defines, so it has to end up in `unresolved`
+Orphan OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Hangs off an undefined parent"
+    ::= { neverDefined 1 }
+
+END
