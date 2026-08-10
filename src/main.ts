@@ -60,6 +60,40 @@ export class TeltonikaAdapter extends Adapter {
     }
 
     /**
+     * The device picker of the widget configuration.
+     *
+     * Read from the object tree rather than the configuration: MQTT routers announce themselves and SNMP
+     * devices appear on their first poll, so the configured device table knows only part of them. Shaped as
+     * json-config's `selectSendTo` expects, `{ value, label }`, with the channel id as the value because that
+     * is what the widget subscribes below.
+     */
+    private async sendDeviceList(obj: ioBroker.Message): Promise<void> {
+        const list: { value: string; label: string }[] = [];
+        try {
+            const channels = await this.getChannelsOfAsync();
+            const depth = `${this.namespace}.`.split('.').length;
+            for (const channel of channels || []) {
+                // Device channels sit directly under the instance; `ports`, `io` and their rows are deeper
+                if (channel._id.split('.').length !== depth || channel._id.endsWith('.info')) {
+                    continue;
+                }
+                const id = channel._id.slice(this.namespace.length + 1);
+                const name = typeof channel.common?.name === 'string' ? channel.common.name : '';
+                list.push({
+                    value: channel._id,
+                    label: name && name !== id ? `${id} — ${name}` : id,
+                });
+            }
+            list.sort((a, b) => a.label.localeCompare(b.label));
+        } catch (error) {
+            this.log.warn(`Cannot collect the device list: ${error instanceof Error ? error.message : error}`);
+        }
+        if (obj.callback) {
+            this.sendTo(obj.from, obj.command, list, obj.callback);
+        }
+    }
+
+    /**
      * Decrypt a credential that `encryptedNative` covers.
      *
      * js-controller only auto-decrypts plain top-level attributes, never a path into a table, so the device
@@ -100,6 +134,10 @@ export class TeltonikaAdapter extends Adapter {
      * which admin then merges into the form the user is looking at.
      */
     private async onMessage(obj: ioBroker.Message): Promise<void> {
+        if (obj?.command === 'teltonika:getDevices') {
+            await this.sendDeviceList(obj);
+            return;
+        }
         if (obj?.command !== 'scan') {
             return;
         }

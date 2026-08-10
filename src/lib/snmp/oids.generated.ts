@@ -79,6 +79,18 @@ export const FAMILY_OIDS: { [family: string]: FamilyOids } = {
                     type: '1.3.6.1.4.1.48690.6.2.1.4',
                 },
             },
+            mwan3Table: {
+                channel: 'interfaces',
+                oid: '1.3.6.1.4.1.48690.12.2',
+                rowName: '1.3.6.1.4.1.48690.12.2.1.2',
+                index: 'mwan3Index',
+                columns: {
+                    enabled: '1.3.6.1.4.1.48690.12.2.1.3',
+                    status: '1.3.6.1.4.1.48690.12.2.1.5',
+                    trackingHosts: '1.3.6.1.4.1.48690.12.2.1.6',
+                    uptime: '1.3.6.1.4.1.48690.12.2.1.4',
+                },
+            },
             portTable: {
                 channel: 'ports',
                 oid: '1.3.6.1.4.1.48690.10.2',

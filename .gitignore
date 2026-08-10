@@ -8,3 +8,7 @@ iob_npm.done
 build/
 # Vendor MIBs, only needed to run `npm run generate-oids`. The generated table is checked in.
 MIBs/
+
+# Widget sources are built into admin/dm-widgets
+src-devices/node_modules
+src-devices/build

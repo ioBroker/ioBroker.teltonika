@@ -58,6 +58,20 @@ export const TABLE_ALIASES: { [table: string]: TableAlias } = {
             ioPercentage: 'percentage',
         },
     },
+    mwan3Table: {
+        // Not `wan`: that id is already taken by the modem address state, and a channel of the same name would
+        // collide with it in the object tree
+        channel: 'interfaces',
+        rowName: 'mwan3Name',
+        columns: {
+            mwan3Status: 'status',
+            mwan3Enabled: 'enabled',
+            mwan3Uptime: 'uptime',
+            // Not the address of the interface: mwan3 reports the hosts it pings to decide whether the link
+            // works. The device does not expose the interface address over SNMP at all.
+            mwan3Ip: 'trackingHosts',
+        },
+    },
     radioTable: {
         channel: 'radios',
         branch: 'wireless',
@@ -206,6 +220,24 @@ export const TABLE_STATES: { [table: string]: { [state: string]: StateDefinition
         percentage: {
             common: { name: 'Percentage', type: 'number', role: 'value', unit: '%', read: true, write: false },
             convert: optionalNumber,
+        },
+    },
+    mwan3Table: {
+        status: {
+            // `online`, `standby` or `notracking` — the failover role, not merely up or down
+            common: { name: 'Status', type: 'string', role: 'info.status', read: true, write: false },
+        },
+        enabled: {
+            common: { name: 'Enabled', type: 'boolean', role: 'indicator', read: true, write: false },
+            convert: flag,
+        },
+        uptime: {
+            common: { name: 'Uptime', type: 'number', role: 'value.interval', unit: 'sec', read: true, write: false },
+            convert: optionalNumber,
+        },
+        trackingHosts: {
+            common: { name: 'Tracking hosts', type: 'string', role: 'info', read: true, write: false },
+            convert: raw => (raw === 'N/A' || !raw ? null : raw),
         },
     },
     radioTable: {

@@ -452,7 +452,7 @@ export default class MQTTServer {
     }
 
     private async updateClients(): Promise<void> {
-        await this.adapter.setStateAsync('info.connection', Object.keys(this.clients).join(','), true);
+        await this.states.setConnections('mqtt', Object.keys(this.clients));
     }
 
     private async updateAlive(client: MQTTClient, alive: boolean): Promise<void> {

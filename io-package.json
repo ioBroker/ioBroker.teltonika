@@ -101,6 +101,46 @@
       "sentry": {
         "dsn": "https://b975bb630271452e96a6bf115ec7946d@sentry.iobroker.net/37"
       }
+    },
+    "deviceWidgets": {
+      "components": [
+        {
+          "name": "TeltonikaDevicesComponent",
+          "label": "Teltonika devices",
+          "description": {
+            "en": "Shows all Teltonika devices as tiles, with port states and mobile status",
+            "de": "Zeigt alle Teltonika-Geräte als Kacheln, mit Port-Zuständen und Mobilfunkstatus",
+            "ru": "Показывает все устройства Teltonika плитками, с состоянием портов и мобильной сети",
+            "pt": "Mostra todos os dispositivos Teltonika em mosaicos, com estados das portas e estado móvel",
+            "nl": "Toont alle Teltonika-apparaten als tegels, met poortstatus en mobiele status",
+            "fr": "Affiche tous les appareils Teltonika sous forme de tuiles, avec l'état des ports et du mobile",
+            "it": "Mostra tutti i dispositivi Teltonika come riquadri, con lo stato delle porte e della rete mobile",
+            "es": "Muestra todos los dispositivos Teltonika como mosaicos, con el estado de los puertos y móvil",
+            "pl": "Pokazuje wszystkie urządzenia Teltonika jako kafelki, ze stanem portów i sieci mobilnej",
+            "uk": "Показує всі пристрої Teltonika плитками, зі станом портів і мобільної мережі",
+            "zh-cn": "以磁贴显示所有 Teltonika 设备，含端口状态与移动网络状态"
+          },
+          "icon": "devices.svg"
+        },
+        {
+          "name": "TeltonikaPortsComponent",
+          "label": "Teltonika ports",
+          "description": {
+            "en": "Front panel of one device: link, speed and throughput per port",
+            "de": "Frontblende eines Geräts: Link, Geschwindigkeit und Durchsatz je Port",
+            "ru": "Передняя панель одного устройства: линк, скорость и трафик по портам",
+            "pt": "Painel frontal de um dispositivo: ligação, velocidade e tráfego por porta",
+            "nl": "Frontpaneel van één apparaat: link, snelheid en doorvoer per poort",
+            "fr": "Face avant d'un appareil : lien, débit et trafic par port",
+            "it": "Pannello frontale di un dispositivo: collegamento, velocità e traffico per porta",
+            "es": "Panel frontal de un dispositivo: enlace, velocidad y tráfico por puerto",
+            "pl": "Panel przedni urządzenia: łącze, prędkość i ruch na port",
+            "uk": "Передня панель пристрою: лінк, швидкість і трафік по портах",
+            "zh-cn": "单台设备的前面板：每个端口的链路、速率与流量"
+          },
+          "icon": "ports.svg"
+        }
+      ]
     }
   },
   "encryptedNative": [

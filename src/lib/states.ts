@@ -42,6 +42,8 @@ export default class DeviceStates {
     private readonly aliveStates: { [deviceId: string]: boolean } = {};
     private readonly owners: { [deviceId: string]: DeviceOwner } = {};
     private readonly warned: { [key: string]: boolean } = {};
+    private readonly connections: { [owner in DeviceOwner]: string[] } = { mqtt: [], snmp: [] };
+    private lastConnection: string | null = null;
 
     constructor(adapter: ioBroker.Adapter) {
         this.adapter = adapter;
@@ -72,6 +74,21 @@ export default class DeviceStates {
         return false;
     }
 
+    /**
+     * Feed the connection indicator. Both transports report here, because `info.connection` describes the
+     * instance as a whole: with SNMP devices only, filling it from the MQTT client list alone would leave the
+     * adapter looking disconnected while it is happily polling.
+     */
+    async setConnections(owner: DeviceOwner, ids: string[]): Promise<void> {
+        this.connections[owner] = ids;
+        const all = [...this.connections.mqtt, ...this.connections.snmp];
+        const value = all.join(',');
+        if (value !== this.lastConnection) {
+            this.lastConnection = value;
+            await this.adapter.setStateAsync('info.connection', value, true);
+        }
+    }
+
     release(deviceId: string, owner: DeviceOwner): void {
         if (this.owners[deviceId] === owner) {
             delete this.owners[deviceId];
@@ -90,10 +107,24 @@ export default class DeviceStates {
         if (!obj?.common) {
             await this.adapter.setObjectAsync(id, newObj);
             this.adapter.log.info(`New object created: ${id}`);
-        } else if (newObj.type === 'state' && obj.common.type !== newObj.common.type) {
-            obj.common.type = newObj.common.type;
-            await this.adapter.setObjectAsync(id, obj);
-            this.adapter.log.info(`Object updated: ${id}`);
+        } else if (newObj.type === 'state' && obj.type === 'state') {
+            // Reconcile what the adapter derives rather than the user: the type, and whether the datapoint is
+            // writable. The write flag decides whether a UI offers a control at all, and it flips when a write
+            // community is added to a device that was already polled — without this the port would stay
+            // read-only forever and a click in the widget would do nothing.
+            const changed: string[] = [];
+            if (obj.common.type !== newObj.common.type) {
+                obj.common.type = newObj.common.type;
+                changed.push('type');
+            }
+            if (!!obj.common.write !== !!newObj.common.write) {
+                obj.common.write = newObj.common.write;
+                changed.push('write');
+            }
+            if (changed.length) {
+                await this.adapter.setObjectAsync(id, obj);
+                this.adapter.log.info(`Object updated (${changed.join(', ')}): ${id}`);
+            }
         }
     }
 

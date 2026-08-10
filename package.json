@@ -23,6 +23,7 @@
         "@alcalzone/release-script-plugin-iobroker": "^5.2.0",
         "@alcalzone/release-script-plugin-license": "^5.2.2",
         "@iobroker/adapter-dev": "^1.5.0",
+        "@iobroker/build-tools": "^2.0.15",
         "@iobroker/eslint-config": "^2.3.4",
         "@iobroker/legacy-testing": "^3.0.0",
         "@iobroker/testing": "^5.3.0",
@@ -48,13 +49,15 @@
         "test:unit": "mocha test/mib.test.js test/states.test.js test/client.test.js test/poller.test.js test/scan.test.js test/traps.test.js --exit",
         "test": "npm run test:unit && npm run test:integration",
         "lint": "eslint -c eslint.config.mjs",
-        "build": "tsc -p tsconfig.build.json",
-        "generate-oids": "npm run build && node tools/generate-oids.js",
+        "build": "tsc -p tsconfig.build.json && node tasks",
+        "generate-oids": "npm run build:ts && node tools/generate-oids.js && npm run build:ts",
         "release": "release-script",
         "release-patch": "release-script patch --yes",
         "release-minor": "release-script minor --yes",
         "release-major": "release-script major --yes",
-        "update-packages": "npx -y npm-check-updates"
+        "update-packages": "npx -y npm-check-updates",
+        "build:ts": "tsc -p tsconfig.build.json",
+        "build:devices": "node tasks"
     },
     "engines": {
         "node": ">=20.0.0"

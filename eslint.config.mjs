@@ -26,6 +26,8 @@ export default [
             'build/**/*',
             'src/lib/**/*.js',
             'admin/**/*',
+            // The device widgets are a separate Vite project with their own toolchain and tsconfig
+            'src-devices/**/*',
             'test/**/*',
             'src-admin/**/*',
             'src-rules/**/*',

@@ -79,6 +79,29 @@ A port only becomes switchable when its name matches exactly one interface. On a
 since both tables say `port1`…`port8`. A RUTC reports four ports named `LAN` against interfaces `lan1`…`lan4`,
 which cannot be paired with any certainty, so only its `WAN` port is switchable.
 
+### Widgets for the device manager
+Two components are registered for the *devices* adapter:
+
+- **Teltonika devices** — every router and switch of an instance as a tile: reachability, a strip showing the
+  link state of each port, and for a router the operator, connection type and signal. Clicking opens the full
+  detail with the front panel, the digital inputs and outputs, and the WAN addresses.
+- **Teltonika ports** — the front panel of a single device on its own tile, with link, speed, duplex and
+  transferred bytes per port. Ports are drawn the way they are printed on the hardware: odd numbers on the
+  upper row, even below, fibre cages in their own group. The device is picked from a dropdown that the adapter
+  fills, and clicking the tile opens the same detail dialog for that one device.
+
+A router additionally shows its **WAN interfaces** as mwan3 tracks them: name, failover status (`online`,
+`standby`, `notracking`), whether the interface is enabled, and for how long it has been up. Note that the
+address column of the WebUI has no counterpart here — over SNMP mwan3 reports the hosts it pings to judge a
+link, not the address the interface holds.
+
+Where a write community is configured, a port can be switched from the panel. There is deliberately no PoE
+indicator — see above, these devices expose no PoE objects at all, so a bolt icon would stand in for data that
+does not exist.
+
+The widgets discover devices from the object tree rather than the adapter configuration, because MQTT routers
+announce themselves and SNMP devices appear on their first poll.
+
 ### Traps
 The adapter can listen for SNMP traps. Enable it under the *SNMP* tab and point the device at this host under
 *Services → SNMP → Trap Settings*. Note that port 162 is privileged on Linux, so a higher port may be needed.
@@ -103,6 +126,12 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 * (bluefox) Added an SNMP trap receiver that records notifications and polls the device that sent one
 * (bluefox) Community strings and SNMPv3 keys are now stored encrypted
 * (bluefox) Ports can be switched through `ports.<name>.enabled` when a write community is configured
+* (bluefox) Added two device manager widgets: an overview of all devices and a front panel view of the ports
+* (bluefox) `info.connection` now also lists the devices polled over SNMP, so an instance without MQTT clients
+  no longer appears disconnected
+* (bluefox) Added the WAN interfaces of a router under `interfaces.<name>`: status, enabled and uptime
+* (bluefox) A port state created before a write community was configured now becomes writable instead of
+  staying read-only forever
 
 ### 0.1.0 (2025-12-07)
 * (bluefox) Changed roles of the states

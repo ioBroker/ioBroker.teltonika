@@ -108,6 +108,9 @@ export class SnmpPoller {
     /** Port state name to its IF-MIB index, only for ports that could be matched beyond doubt */
     private readonly portInterfaces = new Map<string, string>();
     private writeClient: SnmpClient | null = null;
+    /** Answering right now, which is what the instance reports through `info.connection` */
+    reachable = false;
+    onReachabilityChange: (() => void) | null = null;
 
     private readonly branches: ReadonlySet<string>;
 
@@ -176,6 +179,8 @@ export class SnmpPoller {
             if (this.deviceId) {
                 await this.poll();
                 await this.states.setAlive(this.deviceId, true);
+                this.reachable = true;
+                this.onReachabilityChange?.();
             }
             this.failures = 0;
         } catch (error) {
@@ -201,6 +206,8 @@ export class SnmpPoller {
         if (this.deviceId) {
             await this.states.setAlive(this.deviceId, false);
         }
+        this.reachable = false;
+        this.onReachabilityChange?.();
         this.client.close();
     }
 
@@ -545,6 +552,7 @@ export default class SnmpManager {
                 continue;
             }
             const poller = new SnmpPoller(this.adapter, this.states, device, this.branches);
+            poller.onReachabilityChange = () => void this.publishConnections();
             this.pollers.push(poller);
             poller.start().catch(error => this.adapter.log.error(`SNMP ${device.host}: ${error}`));
         }
@@ -557,6 +565,14 @@ export default class SnmpManager {
             this.traps = new TrapReceiver(this.adapter, this.states, host => this.sourceFor(host));
             this.traps.start(traps.port || DEFAULT_TRAP_PORT, traps.community || 'public');
         }
+    }
+
+    /** Report which devices are answering, so the instance does not look disconnected while it is polling. */
+    private async publishConnections(): Promise<void> {
+        const reachable = this.pollers
+            .filter(poller => poller.reachable && poller.id)
+            .map(poller => poller.id as string);
+        await this.states.setConnections('snmp', reachable);
     }
 
     /** Switch a port of a device. False when the device is unknown, uncontrollable or the port unmatched. */

@@ -111,6 +111,44 @@ describe('DeviceStates', () => {
         expect(adapter.states).to.not.have.property(`${DEVICE}.wanIPv6`);
     });
 
+    it('turns an existing state writable once the adapter may write it', async () => {
+        const adapter = makeAdapter();
+        // Created on an earlier run, before a write community was configured
+        adapter.objects[`${DEVICE}.ports.port1.enabled`] = {
+            _id: `teltonika.0.${DEVICE}.ports.port1.enabled`,
+            type: 'state',
+            common: { name: 'Enabled', type: 'boolean', role: 'switch.enable', read: true, write: false },
+            native: {},
+        };
+        const sut = new DeviceStates(adapter);
+
+        await sut.applyDefined(
+            `${DEVICE}.ports.port1.enabled`,
+            { common: { name: 'Enabled', type: 'boolean', role: 'switch.enable', read: true, write: true } },
+            'true',
+        );
+
+        // Without this the port would stay read-only and a click in the widget would silently do nothing
+        expect(adapter.objects[`${DEVICE}.ports.port1.enabled`].common.write).to.equal(true);
+    });
+
+    it('leaves an object alone when nothing the adapter owns has changed', async () => {
+        const adapter = makeAdapter();
+        adapter.objects[`${DEVICE}.signal`] = {
+            _id: `teltonika.0.${DEVICE}.signal`,
+            type: 'state',
+            common: { name: 'Renamed by the user', type: 'number', role: 'value', read: true, write: false },
+            native: {},
+        };
+        const sut = new DeviceStates(adapter);
+
+        await sut.applyValue(DEVICE, 'signal', '-64');
+
+        expect(adapter.calls.setObject).to.equal(0);
+        // A name the user changed must survive
+        expect(adapter.objects[`${DEVICE}.signal`].common.name).to.equal('Renamed by the user');
+    });
+
     it('reports an unknown datapoint and writes nothing', async () => {
         const adapter = makeAdapter();
         const sut = new DeviceStates(adapter);
