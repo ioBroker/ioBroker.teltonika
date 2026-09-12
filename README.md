@@ -116,6 +116,9 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+
+### **WORK IN PROGRESS**
+- (iobroker-bot) Adapter requires node.js >= 22 now.
 ### 1.0.0 (2026-08-10)
 * (bluefox) Added SNMP support for devices without an MQTT publisher, such as the TSW switches
 * (bluefox) Added a network scan that finds Teltonika devices and fills the device table
