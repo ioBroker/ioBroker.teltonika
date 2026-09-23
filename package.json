@@ -28,6 +28,7 @@
     "@iobroker/legacy-testing": "^3.0.1",
     "@iobroker/testing": "^6.2.2",
     "@iobroker/types": "^7.2.3",
+    "@tsconfig/node22": "^22.0.6",
     "mqtt": "^5.16.0",
     "typescript": "~6.0.3"
   },
