@@ -1,1 +1,0 @@
-import{n as e,t}from"./TeltonikaPortsComponent-CyR3-BbF.js";var n={TeltonikaDevicesComponent:e,TeltonikaPortsComponent:t};export{n as default};

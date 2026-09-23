@@ -127,8 +127,7 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 1.0.1 (2026-09-23)
 * (iobroker-bot) Adapter requires node.js >= 22 now.
 * (@GermanBluefox) Added vis-2 widgets: overview of all devices and front panel of one device
 * (@GermanBluefox) Fixed the device manager widgets failing to load now and then with React error #527
