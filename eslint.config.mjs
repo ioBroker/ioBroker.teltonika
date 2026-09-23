@@ -28,6 +28,8 @@ export default [
             'admin/**/*',
             // The device widgets are a separate Vite project with their own toolchain and tsconfig
             'src-devices/**/*',
+            'src-widgets/**/*',
+            'widgets/**/*',
             'test/**/*',
             'src-admin/**/*',
             'src-rules/**/*',

@@ -1,0 +1,12 @@
+{
+    "set_label": "Teltonika",
+    "name": "Nazwa",
+    "noCard": "Bez karty",
+    "mode": "Widok",
+    "mode_summary": "Podsumowanie (kliknięcie otwiera szczegóły)",
+    "mode_tiles": "Kafelek na urządzenie (kliknięcie otwiera szczegóły)",
+    "mode_detail": "Szczegóły wszystkich urządzeń",
+    "mode_panel": "Panel przedni (kliknięcie otwiera szczegóły)",
+    "device_auto": "Automatycznie (pierwsze urządzenie z portami)",
+    "no_device": "Nie znaleziono urządzenia"
+}

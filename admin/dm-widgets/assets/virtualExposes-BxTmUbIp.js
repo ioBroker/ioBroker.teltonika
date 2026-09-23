@@ -1,0 +1,1 @@
+import{t as e}from"./virtual_mf-exposes___mfe_internal__DevicesWidgetTeltonikaSet__customDevices_js-DNk4kG-r.js";export{e as default};

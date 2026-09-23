@@ -12,3 +12,7 @@ MIBs/
 # Widget sources are built into admin/dm-widgets
 src-devices/node_modules
 src-devices/build
+
+# vis-2 widget sources are built into widgets/teltonika
+src-widgets/node_modules
+src-widgets/build

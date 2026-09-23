@@ -1,0 +1,12 @@
+{
+    "set_label": "Teltonika",
+    "name": "Naam",
+    "noCard": "Zonder kaart",
+    "mode": "Weergave",
+    "mode_summary": "Samenvatting (klik opent de details)",
+    "mode_tiles": "Tegel per apparaat (klik opent de details)",
+    "mode_detail": "Details van alle apparaten",
+    "mode_panel": "Frontpaneel (klik opent de details)",
+    "device_auto": "Automatisch (eerste apparaat met poorten)",
+    "no_device": "Geen apparaat gevonden"
+}

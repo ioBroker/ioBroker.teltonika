@@ -1,1 +1,1 @@
-import{n as e,t}from"./assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__DevicesWidgetTeltonikaSet__customDevices_js-CDZ3Tdvc.js";export{t as get,e as init};
+import{n as e,t}from"./assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__DevicesWidgetTeltonikaSet__customDevices_js-CfMsHHKu.js";export{t as get,e as init};

@@ -25,6 +25,9 @@ const config = {
             remotes: {},
             shared: moduleFederationShared(pack),
             dts: false,
+            // 'version-first' (default) may pick react from one container and react-dom from another
+            // (React error #527). Prefer the instances the admin host has already loaded.
+            shareStrategy: 'loaded-first',
         }),
         react(),
         commonjs(),

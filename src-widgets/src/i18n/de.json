@@ -1,0 +1,12 @@
+{
+    "set_label": "Teltonika",
+    "name": "Name",
+    "noCard": "Ohne Karte",
+    "mode": "Anzeige",
+    "mode_summary": "Zusammenfassung (Klick öffnet die Details)",
+    "mode_tiles": "Kachel je Gerät (Klick öffnet die Details)",
+    "mode_detail": "Details aller Geräte",
+    "mode_panel": "Frontblende (Klick öffnet die Details)",
+    "device_auto": "Automatisch (erstes Gerät mit Ports)",
+    "no_device": "Kein Gerät gefunden"
+}

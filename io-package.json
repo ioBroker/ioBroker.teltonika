@@ -154,7 +154,24 @@
           "icon": "ports.svg"
         }
       ]
-    }
+    },
+    "visWidgets": {
+      "vis2TeltonikaWidgets": {
+        "i18n": "component",
+        "name": "vis2TeltonikaWidgets",
+        "url": "teltonika/customWidgets.js",
+        "color": "#0a5ea8",
+        "bundlerType": "module",
+        "label": "telt_set_label",
+        "components": [
+          "TeltonikaDevices",
+          "TeltonikaPorts"
+        ]
+      }
+    },
+    "restartAdapters": [
+      "vis-2"
+    ]
   },
   "encryptedNative": [
     "password",

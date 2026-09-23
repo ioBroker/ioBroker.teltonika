@@ -1,0 +1,12 @@
+{
+    "set_label": "Teltonika",
+    "name": "名称",
+    "noCard": "无卡片",
+    "mode": "显示",
+    "mode_summary": "摘要（点击打开详情）",
+    "mode_tiles": "每台设备一个磁贴（点击打开详情）",
+    "mode_detail": "所有设备的详情",
+    "mode_panel": "前面板（点击打开详情）",
+    "device_auto": "自动（第一台有端口的设备）",
+    "no_device": "未找到设备"
+}

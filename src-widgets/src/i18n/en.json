@@ -1,0 +1,12 @@
+{
+    "set_label": "Teltonika",
+    "name": "Name",
+    "noCard": "Without card",
+    "mode": "Display",
+    "mode_summary": "Summary (click opens the details)",
+    "mode_tiles": "Tile per device (click opens the details)",
+    "mode_detail": "Details of every device",
+    "mode_panel": "Front panel (click opens the details)",
+    "device_auto": "Automatic (first device with ports)",
+    "no_device": "No device found"
+}
