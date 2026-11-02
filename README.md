@@ -213,7 +213,7 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 1.2.0 (2026-11-02)
 * (@GermanBluefox) Added the LAN address of every SNMP device as `<device>.lan`, and all its IPv4 addresses per interface under `<device>.addresses`, read from the IP-MIB
 * (@GermanBluefox) Added switching PoE per port (`<device>.ports.<name>.poe`) over the Web API of the device, with whether a device draws power (`poeActive`) and how much (`poePower`), for devices with a web password configured (the user defaults to `admin`)
 * (@GermanBluefox) Port channels are named after the description set on the device (`ifAlias`), unless renamed in ioBroker
@@ -252,9 +252,6 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 * (bluefox) Added the WAN interfaces of a router under `interfaces.<name>`: status, enabled and uptime
 * (bluefox) A port state created before a write community was configured now becomes writable instead of
   staying read-only forever
-
-### 0.1.0 (2025-12-07)
-* (bluefox) Changed roles of the states
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
