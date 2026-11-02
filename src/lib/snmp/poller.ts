@@ -48,6 +48,9 @@ const LAN_ADDRESS: ioBroker.StateCommon = {
     write: false,
 };
 
+/** WebUI user of a Teltonika device out of the box, taken when only a password is configured */
+const DEFAULT_API_USER = 'admin';
+
 /** Web API section holding the per-port settings, PoE among them. Only ports with PoE carry `poe_enable`. */
 const PORT_SETTINGS = 'ports_settings/config';
 /** Live values per port. Lists `poe_enable` for the SFP cages too (as `"0"`), so it cannot tell who has PoE. */
@@ -105,7 +108,7 @@ export interface SnmpDeviceConfig extends SnmpTarget {
     pollInterval?: number;
     /** Set to allow writes. Empty means the adapter only reads, and the port states stay read-only. */
     writeCommunity?: string;
-    /** WebUI login, needed for PoE only. Without it the Web API is never contacted. */
+    /** WebUI login, needed for PoE only. Without a password the Web API is never contacted; the user defaults to `admin`. */
     apiUser?: string;
     apiPassword?: string;
 }
@@ -370,10 +373,14 @@ export class SnmpPoller {
         this.presence = extras.presence || null;
         this.exposeClients = !!extras.exposeClients;
         this.client = new SnmpClient(config);
-        this.api =
-            config.apiUser && config.apiPassword
-                ? new TeltonikaApi({ host: config.host, user: config.apiUser, password: config.apiPassword })
-                : null;
+        // The password alone switches the Web API on; the user defaults to `admin`, the one every device ships with
+        this.api = config.apiPassword
+            ? new TeltonikaApi({
+                  host: config.host,
+                  user: config.apiUser?.trim() || DEFAULT_API_USER,
+                  password: config.apiPassword,
+              })
+            : null;
     }
 
     get host(): string {

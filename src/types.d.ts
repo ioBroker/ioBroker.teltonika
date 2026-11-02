@@ -35,8 +35,8 @@ export interface SnmpDeviceEntry {
      */
     writeCommunity?: string;
     /**
-     * WebUI login, used for nothing but switching PoE: SNMP cannot reach it. Empty leaves the Web API alone and
-     * creates no PoE states.
+     * WebUI login, used for nothing but switching PoE: SNMP cannot reach it. Without a password the Web API is
+     * left alone and no PoE states are created; an empty user means `admin`.
      */
     apiUser?: string;
     apiPassword?: string;

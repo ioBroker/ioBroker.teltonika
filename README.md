@@ -145,14 +145,14 @@ the port matched to its interface, so a RUTC names its `WAN` port only.
 
 ### Switching PoE
 SNMP cannot reach PoE: the devices answer with no objects under the POWER-ETHERNET-MIB. It goes through the
-**Web API** of the device instead, which needs the login of the WebUI — fill in *Web user* and *Web password*
-for the device. Each port with PoE then gets three states, read on every poll:
+**Web API** of the device instead, which needs the login of the WebUI — fill in *Web password* (and
+*Web user*, if it is not `admin`) for the device. Each port with PoE then gets three states, read on every poll:
 - `<device>.ports.<name>.poe` — the PoE output, switchable
 - `<device>.ports.<name>.poeActive` — a device draws power. `false` while `poe` is on means nothing PoE-powered
   is plugged in, an uplink for instance.
 - `<device>.ports.<name>.poePower` — the power drawn, in W
 
-Without a login the Web API is never contacted and no PoE state is created. The SFP cages have no PoE and get
+Without a password the Web API is never contacted and no PoE state is created. The SFP cages have no PoE and get
 none of them.
 
 - The adapter talks HTTPS to the device and accepts its self-signed certificate, since the device creates that
@@ -215,7 +215,7 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 ## Changelog
 ### **WORK IN PROGRESS**
 * (@GermanBluefox) Added the LAN address of every SNMP device as `<device>.lan`, and all its IPv4 addresses per interface under `<device>.addresses`, read from the IP-MIB
-* (@GermanBluefox) Added switching PoE per port (`<device>.ports.<name>.poe`) over the Web API of the device, with whether a device draws power (`poeActive`) and how much (`poePower`), for devices with a web login configured
+* (@GermanBluefox) Added switching PoE per port (`<device>.ports.<name>.poe`) over the Web API of the device, with whether a device draws power (`poeActive`) and how much (`poePower`), for devices with a web password configured (the user defaults to `admin`)
 * (@GermanBluefox) Port channels are named after the description set on the device (`ifAlias`), unless renamed in ioBroker
 * (@GermanBluefox) The widgets show the LAN address, the address of a WAN interface, the port descriptions and a bolt on ports with PoE on; the device detail lists the PoE ports with a switch each
 
