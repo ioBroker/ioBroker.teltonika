@@ -395,6 +395,11 @@ export class SnmpPoller {
         return this.oids?.family || '';
     }
 
+    /** Whether a web password is configured, so PoE is read and switched over the Web API */
+    get usesWebApi(): boolean {
+        return !!this.api;
+    }
+
     /** Poll ahead of the timer, used when a trap says something changed. */
     refresh(): void {
         void this.tick();
@@ -1024,7 +1029,13 @@ export default class SnmpManager {
         }
         if (this.pollers.length) {
             const optional = this.branches.size ? `, optional branches: ${[...this.branches].join(', ')}` : '';
-            this.adapter.log.info(`Polling ${this.pollers.length} device(s) over SNMP${optional}`);
+            // Said at start, as a missing web password is otherwise silent: without it the Web API is never contacted
+            const web = this.pollers.filter(poller => poller.usesWebApi).map(poller => poller.host);
+            this.adapter.log.info(
+                `Polling ${this.pollers.length} device(s) over SNMP${optional}; PoE over the Web API: ${
+                    web.length ? web.join(', ') : 'none, no web password set'
+                }`,
+            );
         }
 
         if (traps?.enabled && this.pollers.length) {
