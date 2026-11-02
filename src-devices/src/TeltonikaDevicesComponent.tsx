@@ -173,6 +173,15 @@ export class TeltonikaDevicesComponent extends WidgetGeneric<State, Settings> {
             .setState(`${device.id}.ports.${port.id}.enabled`, { val: !port.enabled, ack: false });
     }
 
+    private togglePoe(device: DeviceInfo, port: PortInfo): void {
+        if (!port.poeSwitchable) {
+            return;
+        }
+        void this.props.stateContext
+            .getSocket()
+            .setState(`${device.id}.ports.${port.id}.poe`, { val: !port.poe, ack: false });
+    }
+
     private visibleDevices(): DeviceInfo[] {
         const all = [...this.state.devices.values()];
         return sortDevices(this.props.settings.onlyAlive ? all.filter(device => device.alive !== false) : all);
@@ -223,6 +232,7 @@ export class TeltonikaDevicesComponent extends WidgetGeneric<State, Settings> {
                                 key={device.id}
                                 device={device}
                                 onToggle={port => this.togglePort(device, port)}
+                                onTogglePoe={port => this.togglePoe(device, port)}
                             />
                         ))
                     ) : (

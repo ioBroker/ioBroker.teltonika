@@ -1,7 +1,16 @@
 'use strict';
 
 const { expect } = require('chai');
-const { indexOf, uniqueRowNames, matchInterfaces, clientsWithSsid } = require('../build/lib/snmp/poller.js');
+const {
+    indexOf,
+    uniqueRowNames,
+    matchInterfaces,
+    clientsWithSsid,
+    addressesByInterface,
+    lanAddress,
+    poeStates,
+    poeStatus,
+} = require('../build/lib/snmp/poller.js');
 const { TABLE_STATES, BRANCH_STATES } = require('../build/lib/snmp/aliases.js');
 const { FAMILY_OIDS } = require('../build/lib/snmp/oids.generated.js');
 
@@ -288,5 +297,144 @@ describe('clientsWithSsid', () => {
 
     it('reports an empty table as nobody connected', () => {
         expect(clientsWithSsid(new Map(), new Map(), new Map())).to.deep.equal([]);
+    });
+});
+
+describe('interface addresses', () => {
+    // What a RUTC50 answers: ipAdEntIfIndex keyed by the address, ifDescr for the interfaces it names
+    const RUTC_INDICES = new Map([
+        ['10.179.26.239', '79'],
+        ['100.67.162.12', '3'],
+        ['127.0.0.1', '1'],
+        ['192.168.1.1', '14'],
+    ]);
+    const RUTC_NAMES = new Map([
+        ['1', 'lo'],
+        ['3', 'wan'],
+        ['14', 'br-lan'],
+        ['79', 'qmimux0'],
+    ]);
+
+    it('groups the addresses by interface and leaves loopback out', () => {
+        expect([...addressesByInterface(RUTC_INDICES, RUTC_NAMES)]).to.deep.equal([
+            ['qmimux0', ['10.179.26.239']],
+            ['wan', ['100.67.162.12']],
+            ['br-lan', ['192.168.1.1']],
+        ]);
+    });
+
+    it('keeps every address of an interface that carries several', () => {
+        const indices = new Map([
+            ['192.168.1.1', '14'],
+            ['192.168.2.1', '14'],
+        ]);
+        expect(addressesByInterface(indices, new Map([['14', 'br-lan']])).get('br-lan')).to.deep.equal([
+            '192.168.1.1',
+            '192.168.2.1',
+        ]);
+    });
+
+    it('names an interface without ifDescr by its index', () => {
+        expect([...addressesByInterface(new Map([['10.0.0.1', '7']]), new Map()).keys()]).to.deep.equal(['if7']);
+    });
+
+    it('takes br-lan of a router as its LAN address, not the modem or the wired WAN', () => {
+        expect(lanAddress(addressesByInterface(RUTC_INDICES, RUTC_NAMES), '192.168.1.1')).to.equal('192.168.1.1');
+    });
+
+    it('takes the bridge of a TSW switch', () => {
+        const byInterface = addressesByInterface(
+            new Map([
+                ['127.0.0.1', '1'],
+                ['192.168.1.3', '14'],
+            ]),
+            new Map([
+                ['1', 'lo'],
+                ['14', 'br0.1'],
+            ]),
+        );
+        // Polled by a host name, so only the bridge can tell
+        expect(lanAddress(byInterface, 'switch.local')).to.equal('192.168.1.3');
+    });
+
+    it('falls back to the polled address when there is no bridge', () => {
+        const byInterface = new Map([
+            ['eth1', ['100.64.0.2']],
+            ['eth0', ['192.168.1.5']],
+        ]);
+        expect(lanAddress(byInterface, '192.168.1.5')).to.equal('192.168.1.5');
+        expect(lanAddress(byInterface, '192.168.1.99')).to.equal(null);
+    });
+});
+
+describe('poeStates', () => {
+    it('reads the PoE switch of every port that has one', () => {
+        const rows = [
+            { id: 'port1', enabled: '1', poe_enable: '1', speed: 'auto' },
+            { id: 'port2', enabled: '1', poe_enable: '0' },
+            // The SFP cages carry no PoE option at all
+            { id: 'sfp1', enabled: '1' },
+        ];
+        expect([...poeStates(rows)]).to.deep.equal([
+            ['port1', true],
+            ['port2', false],
+        ]);
+    });
+
+    it('accepts numbers and booleans as well as the strings the API sends', () => {
+        expect([
+            ...poeStates([
+                { id: 'port1', poe_enable: 1 },
+                { id: 'port2', poe_enable: false },
+            ]),
+        ]).to.deep.equal([
+            ['port1', true],
+            ['port2', false],
+        ]);
+    });
+
+    it('leaves out what it cannot read rather than guessing off', () => {
+        expect(
+            poeStates([
+                { id: 'port1', poe_enable: '' },
+                { id: 'port2', poe_enable: 'auto' },
+                { poe_enable: '1' },
+                null,
+                'port3',
+            ]).size,
+        ).to.equal(0);
+        expect(poeStates({ data: [] }).size).to.equal(0);
+        expect(poeStates(undefined).size).to.equal(0);
+    });
+});
+
+describe('poeStatus', () => {
+    // What a TSW202 answers on ports_settings/status, trimmed to the PoE options
+    const ROWS = [
+        { id: 'port1', poe_enable: '1', power: '1', budget: '5464.944128', link: '1' },
+        { id: 'port3', poe_enable: '0', power: '0', budget: '0', link: '0' },
+        // Link up, PoE on, but the device behind it is not PoE powered
+        { id: 'port7', poe_enable: '1', power: '0', budget: '0', link: '1' },
+        // The SFP cages are listed with poe_enable "0" although they have no PoE at all
+        { id: 'sfp1', poe_enable: '0', power: '0', budget: '0' },
+    ];
+    const PORTS = new Set(['port1', 'port3', 'port7']);
+
+    it('reads switch, powering and power in watts', () => {
+        expect(poeStatus(ROWS, PORTS).get('port1')).to.deep.equal({ on: true, active: true, power: 5.5 });
+        expect(poeStatus(ROWS, PORTS).get('port3')).to.deep.equal({ on: false, active: false, power: 0 });
+        expect(poeStatus(ROWS, PORTS).get('port7')).to.deep.equal({ on: true, active: false, power: 0 });
+    });
+
+    it('only reports the ports the configuration names as PoE ports', () => {
+        expect([...poeStatus(ROWS, PORTS).keys()]).to.deep.equal(['port1', 'port3', 'port7']);
+    });
+
+    it('leaves a value it cannot read empty', () => {
+        expect(poeStatus([{ id: 'port1', poe_enable: 'x' }], new Set(['port1'])).get('port1')).to.deep.equal({
+            on: null,
+            active: null,
+            power: null,
+        });
     });
 });

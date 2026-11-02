@@ -1,8 +1,8 @@
 // The front panel view: one RJ45 symbol per port, laid out the way the numbers are printed on the device —
 // odd ports on the upper row, even below, fibre ports in their own group on the right.
 //
-// There is deliberately no PoE indicator. These devices expose no POWER-ETHERNET-MIB at all, so any bolt icon
-// would be decoration standing in for data the adapter cannot obtain.
+// PoE is drawn only where the adapter actually knows it. SNMP has no PoE objects on these devices, so the bolt
+// appears only on a device with a web login configured, whose PoE state the adapter reads over the Web API.
 
 import { React, MuiMaterial } from '@iobroker/dm-widgets';
 import type { BoxProps, TooltipProps, TypographyProps } from '@mui/material';
@@ -16,7 +16,8 @@ const COLORS = {
     link: '#3ecf5f',
     idle: '#9aa7b4',
     disabled: '#5b4a4a',
-    frame: 'rgba(255,255,255,0.14)',
+    poe: '#f5c518',
+    frame:'rgba(255,255,255,0.14)',
     badge: 'rgba(255,255,255,0.10)',
 } as const;
 
@@ -25,7 +26,15 @@ export interface PortPanelProps {
     /** Called when a switchable port is clicked. Absent means the panel is display only. */
     onToggle?: (port: PortInfo) => void;
     size?: number;
-    labels?: { ethernet: string; fibre: string; up: string; down: string; disabled: string };
+    labels?: {
+        ethernet: string;
+        fibre: string;
+        up: string;
+        down: string;
+        disabled: string;
+        poeOn?: string;
+        poeOff?: string;
+    };
 }
 
 /**
@@ -83,8 +92,31 @@ function PortCell({
         </Typography>
     );
 
+    const poe =
+        port.poe === null
+            ? null
+            : `${port.poe ? labels.poeOn || 'PoE on' : labels.poeOff || 'PoE off'}${
+                  port.poe && port.poePower ? ` · ${port.poePower} W` : ''
+              }`;
+
     const badge = (
-        <Box sx={{ height: size * 0.42, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box
+            sx={{ height: size * 0.42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.25 }}
+        >
+            {port.poe ? (
+                <Box
+                    component="span"
+                    // Faint while nothing draws power: switched on, but no PoE device plugged in
+                    sx={{
+                        color: COLORS.poe,
+                        fontSize: size * 0.3,
+                        lineHeight: 1,
+                        opacity: port.poeActive === false ? 0.35 : 1,
+                    }}
+                >
+                    ⚡
+                </Box>
+            ) : null}
             {speed ? (
                 <Box
                     sx={{
@@ -106,9 +138,10 @@ function PortCell({
         <Tooltip
             title={
                 <Box sx={{ whiteSpace: 'pre-line' }}>
-                    {`${port.label} — ${status}`}
+                    {`${port.label}${port.description ? ` · ${port.description}` : ''} — ${status}`}
                     {speed ? `\n${speed}${port.duplex ? ' · full duplex' : ''}` : ''}
                     {throughput ? `\n${throughput}` : ''}
+                    {poe ? `\n${poe}` : ''}
                     {clickable ? '\n⬜' : ''}
                 </Box>
             }

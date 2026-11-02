@@ -68,7 +68,8 @@ export const TABLE_ALIASES: { [table: string]: TableAlias } = {
             mwan3Enabled: 'enabled',
             mwan3Uptime: 'uptime',
             // Not the address of the interface: mwan3 reports the hosts it pings to decide whether the link
-            // works. The device does not expose the interface address over SNMP at all.
+            // works. The Teltonika MIB has no interface address at all; the poller reads those from the IP-MIB
+            // into `addresses`.
             mwan3Ip: 'trackingHosts',
         },
     },

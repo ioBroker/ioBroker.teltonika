@@ -16,7 +16,7 @@ import PortPanel from '@teltonika/PortPanel';
 import type { PortInfo } from '@teltonika/utils';
 import DeviceDialog from './DeviceDialog';
 import DeviceField from './DeviceField';
-import { togglePort, useDevices } from './useDevices';
+import { togglePoe, togglePort, useDevices } from './useDevices';
 
 type Mode = 'panel' | 'detail';
 
@@ -184,12 +184,14 @@ function PortsBody({
     }
 
     const onToggle = allowSwitching ? (port: PortInfo): void => togglePort(socket, device, port) : undefined;
+    const onTogglePoe = allowSwitching ? (port: PortInfo): void => togglePoe(socket, device, port) : undefined;
 
     if (mode === 'detail') {
         return (
             <DeviceDetail
                 device={device}
                 onToggle={onToggle}
+                onTogglePoe={onTogglePoe}
             />
         );
     }
@@ -252,6 +254,7 @@ function PortsBody({
                     <DeviceDetail
                         device={device}
                         onToggle={onToggle}
+                        onTogglePoe={onTogglePoe}
                     />
                 </DeviceDialog>
             ) : null}

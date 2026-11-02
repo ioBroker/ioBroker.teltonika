@@ -34,6 +34,12 @@ export interface SnmpDeviceEntry {
      * created without the write flag, because the adapter would have no way to honour a change.
      */
     writeCommunity?: string;
+    /**
+     * WebUI login, used for nothing but switching PoE: SNMP cannot reach it. Empty leaves the Web API alone and
+     * creates no PoE states.
+     */
+    apiUser?: string;
+    apiPassword?: string;
 }
 
 /** A person whose presence is derived from the MAC addresses the routers report as associated */

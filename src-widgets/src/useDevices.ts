@@ -16,6 +16,13 @@ export function togglePort(socket: Connection, device: DeviceInfo, port: PortInf
     }
 }
 
+/** Switches the PoE output of a port; only ports with a PoE state (web login configured) react. */
+export function togglePoe(socket: Connection, device: DeviceInfo, port: PortInfo): void {
+    if (port.poeSwitchable) {
+        void socket.setState(`${device.id}.ports.${port.id}.poe`, { val: !port.poe, ack: false });
+    }
+}
+
 export interface DevicesResult {
     /** `null` until the object tree has been read */
     devices: DeviceInfo[] | null;

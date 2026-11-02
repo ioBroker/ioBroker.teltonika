@@ -5,6 +5,7 @@ import TrapReceiver, { DEFAULT_TRAP_PORT, type TrapSource } from './traps';
 import type DeviceStates from '../states';
 import { sanitizeId } from '../states';
 import type PresenceTracker from '../presence';
+import TeltonikaApi from '../api/client';
 
 /** Common to every Teltonika family, which is what makes a degraded mode possible for unknown devices */
 const DEVICE_GROUP = {
@@ -19,12 +20,65 @@ const DEFAULT_POLL_INTERVAL = 30000;
 
 /**
  * Port control rides on the standard IF-MIB rather than the Teltonika tree, which exposes nothing writable.
- * PoE is not reachable at all: POWER-ETHERNET-MIB answers with no objects on these devices.
+ * PoE is not reachable over SNMP at all: POWER-ETHERNET-MIB answers with no objects on these devices (checked on
+ * a TSW202), which is why it goes through the Web API instead. The `ifDescr` names also label the addresses read
+ * from the IP-MIB.
  */
 const IF_DESCR = '1.3.6.1.2.1.2.2.1.2';
 const IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7';
+/** `ifAlias` of IF-MIB. A TSW switch puts the description of each port here, as set under Port settings. */
+const IF_ALIAS = '1.3.6.1.2.1.31.1.1.1.18';
 const IF_UP = 1;
 const IF_DOWN = 2;
+
+/**
+ * Column `ipAdEntIfIndex` of the IP-MIB `ipAddrTable`. The Teltonika MIB carries no interface address at all, but
+ * routers and switches alike answer here. The table is indexed by the address itself, so walking this one column
+ * yields both the address and the interface it sits on. IPv4 only: the newer `ipAddressTable`, which would carry
+ * IPv6 as well, is empty on these devices.
+ */
+const IP_AD_ENT_IF_INDEX = '1.3.6.1.2.1.4.20.1.2';
+
+const LAN_ADDRESS: ioBroker.StateCommon = {
+    name: 'LAN IP Address',
+    desc: 'IPv4 address of the device in the local network',
+    type: 'string',
+    role: 'info.ip',
+    read: true,
+    write: false,
+};
+
+/** Web API section holding the per-port settings, PoE among them. Only ports with PoE carry `poe_enable`. */
+const PORT_SETTINGS = 'ports_settings/config';
+/** Live values per port. Lists `poe_enable` for the SFP cages too (as `"0"`), so it cannot tell who has PoE. */
+const PORT_STATUS = 'ports_settings/status';
+
+const POE_STATE: ioBroker.StateCommon = {
+    name: 'PoE',
+    desc: 'Power over Ethernet output of the port, switched over the Web API',
+    type: 'boolean',
+    role: 'switch.power',
+    read: true,
+    write: true,
+};
+
+const POE_ACTIVE: ioBroker.StateCommon = {
+    name: 'PoE powering',
+    desc: 'A device draws power from the port. False with PoE on means nothing PoE-powered is plugged in.',
+    type: 'boolean',
+    role: 'indicator',
+    read: true,
+    write: false,
+};
+
+const POE_POWER: ioBroker.StateCommon = {
+    name: 'PoE power',
+    type: 'number',
+    role: 'value.power',
+    unit: 'W',
+    read: true,
+    write: false,
+};
 
 /** Table of the associated Wi-Fi stations, which is read by hand rather than through the generic table path */
 const WIFI_CLIENT_TABLE = 'wIfaceClientTable';
@@ -51,6 +105,9 @@ export interface SnmpDeviceConfig extends SnmpTarget {
     pollInterval?: number;
     /** Set to allow writes. Empty means the adapter only reads, and the port states stay read-only. */
     writeCommunity?: string;
+    /** WebUI login, needed for PoE only. Without it the Web API is never contacted. */
+    apiUser?: string;
+    apiPassword?: string;
 }
 
 /** What a poller needs beyond the device itself, kept apart because both of these are instance wide */
@@ -162,6 +219,111 @@ export function matchInterfaces(
     return { matched, skipped };
 }
 
+/**
+ * Group the IPv4 addresses of a device by the name of their interface, loopback left out.
+ *
+ * @param ifIndices address to IF-MIB interface index, as `ipAdEntIfIndex` delivers it
+ * @param ifNames interface index to `ifDescr`; an index without a name falls back to `if<index>`
+ */
+export function addressesByInterface(
+    ifIndices: Map<string, string>,
+    ifNames: Map<string, string>,
+): Map<string, string[]> {
+    const result = new Map<string, string[]>();
+    for (const [address, ifIndex] of ifIndices) {
+        if (address.startsWith('127.')) {
+            continue;
+        }
+        const name = ifNames.get(ifIndex) || `if${ifIndex}`;
+        result.set(name, [...(result.get(name) || []), address]);
+    }
+    return result;
+}
+
+/**
+ * The address the device has in the local network.
+ *
+ * OpenWrt bridges the LAN ports: `br-lan` on a router, `br0.1` (VLAN 1 of the bridge) on a TSW switch. Without
+ * any bridge, the address the adapter polls is the best guess left, as long as the device actually carries it.
+ */
+export function lanAddress(byInterface: Map<string, string[]>, host: string): string | null {
+    const names = [...byInterface.keys()];
+    const bridge = names.find(name => name === 'br-lan') || names.find(name => name.startsWith('br'));
+    if (bridge) {
+        return byInterface.get(bridge)?.[0] || null;
+    }
+    for (const addresses of byInterface.values()) {
+        if (addresses.includes(host)) {
+            return host;
+        }
+    }
+    return null;
+}
+
+/** A flag as the Web API writes it, `"1"` or `"0"`. Anything else is not guessed at. */
+function apiFlag(value: unknown): boolean | null {
+    if (value === '1' || value === 1 || value === true) {
+        return true;
+    }
+    if (value === '0' || value === 0 || value === false) {
+        return false;
+    }
+    return null;
+}
+
+/** The rows of a Web API table that carry an id, typed loosely: the options differ across firmware versions */
+function apiRows(rows: unknown): { id: string; [option: string]: unknown }[] {
+    if (!Array.isArray(rows)) {
+        return [];
+    }
+    return rows.filter(
+        (row): row is { id: string } => !!row && typeof row === 'object' && typeof row.id === 'string' && !!row.id,
+    );
+}
+
+/**
+ * The PoE switch of every port in `ports_settings/config`, keyed by the API's port id (`port1`…).
+ *
+ * Only `poe_enable` is read: Teltonika has renamed other options of this section between firmware versions
+ * (`enable` became `enabled`), so nothing else is relied upon. A row without the option is a port without
+ * PoE — the SFP cages, or every port of a router.
+ */
+export function poeStates(rows: unknown): Map<string, boolean> {
+    const result = new Map<string, boolean>();
+    for (const row of apiRows(rows)) {
+        const on = apiFlag(row.poe_enable);
+        if (on !== null) {
+            result.set(row.id, on);
+        }
+    }
+    return result;
+}
+
+export interface PoeStatus {
+    on: boolean | null;
+    /** A powered device is attached and drawing power */
+    active: boolean | null;
+    /** In watts. The API reports `budget` in milliwatts. */
+    power: number | null;
+}
+
+/** The live PoE values of `ports_settings/status`, for the ports known to have PoE. */
+export function poeStatus(rows: unknown, ports: ReadonlySet<string>): Map<string, PoeStatus> {
+    const result = new Map<string, PoeStatus>();
+    for (const row of apiRows(rows)) {
+        if (!ports.has(row.id)) {
+            continue;
+        }
+        const milliwatts = typeof row.budget === 'string' || typeof row.budget === 'number' ? Number(row.budget) : NaN;
+        result.set(row.id, {
+            on: apiFlag(row.poe_enable),
+            active: apiFlag(row.power),
+            power: isFinite(milliwatts) ? Math.round(milliwatts / 100) / 10 : null,
+        });
+    }
+    return result;
+}
+
 export class SnmpPoller {
     private readonly adapter: ioBroker.Adapter;
     private readonly states: DeviceStates;
@@ -177,6 +339,15 @@ export class SnmpPoller {
     /** Port state name to its IF-MIB index, only for ports that could be matched beyond doubt */
     private readonly portInterfaces = new Map<string, string>();
     private writeClient: SnmpClient | null = null;
+    /** Address states written by the last poll, so one whose interface lost its address can be cleared */
+    private readonly addressIds = new Set<string>();
+    /** Only with a web login configured. SNMP stays the source of everything else. */
+    private readonly api: TeltonikaApi | null;
+    /** Port state name to the API's port id, for every port that reported a PoE switch */
+    private readonly poePorts = new Map<string, string>();
+    private apiFailures = 0;
+    /** The port configuration was read once, so `poePorts` is known — possibly empty */
+    private poeChecked = false;
     /** Answering right now, which is what the instance reports through `info.connection` */
     reachable = false;
     onReachabilityChange: (() => void) | null = null;
@@ -199,6 +370,10 @@ export class SnmpPoller {
         this.presence = extras.presence || null;
         this.exposeClients = !!extras.exposeClients;
         this.client = new SnmpClient(config);
+        this.api =
+            config.apiUser && config.apiPassword
+                ? new TeltonikaApi({ host: config.host, user: config.apiUser, password: config.apiPassword })
+                : null;
     }
 
     get host(): string {
@@ -238,6 +413,7 @@ export class SnmpPoller {
         this.client.close();
         this.writeClient?.close();
         this.writeClient = null;
+        this.api?.close();
     }
 
     private async tick(): Promise<void> {
@@ -370,6 +546,11 @@ export class SnmpPoller {
             }
         }
 
+        // Standard MIB, so read even on a family without a generated OID table
+        await this.pollAddresses(deviceId);
+        // After the port table, so the port channels exist
+        await this.pollPoe(deviceId);
+
         const cpu = await this.client.get([DEVICE_GROUP.cpuUsage]);
         const usage = cpu.get(DEVICE_GROUP.cpuUsage);
         if (usage !== null && usage !== undefined) {
@@ -467,6 +648,143 @@ export class SnmpPoller {
         }
     }
 
+    /**
+     * Every IPv4 address of the device under `addresses.<interface>`, and the LAN address on its own as `lan`, next
+     * to the `wan` the modem reports. On a router `addresses` also holds the wired WAN, which `wan` does not.
+     */
+    private async pollAddresses(deviceId: string): Promise<void> {
+        const ifIndices = await walkColumn(this.client, IP_AD_ENT_IF_INDEX);
+        if (!ifIndices.size) {
+            return;
+        }
+
+        const indices = [...new Set(ifIndices.values())];
+        const descriptions = await this.client.get(indices.map(index => `${IF_DESCR}.${index}`));
+        const ifNames = new Map<string, string>();
+        for (const index of indices) {
+            const name = descriptions.get(`${IF_DESCR}.${index}`);
+            if (name) {
+                ifNames.set(index, name);
+            }
+        }
+        const byInterface = addressesByInterface(ifIndices, ifNames);
+
+        const lan = lanAddress(byInterface, this.config.host);
+        const lanId = `${deviceId}.lan`;
+        if (lan) {
+            await this.states.writeValue(lanId, LAN_ADDRESS, lan);
+        }
+
+        const current = new Set<string>(lan ? [lanId] : []);
+        if (byInterface.size) {
+            await this.states.ensureChannel(`${deviceId}.addresses`, 'IP addresses');
+        }
+        for (const [name, addresses] of byInterface) {
+            const id = `${deviceId}.addresses.${sanitizeId(name)}`;
+            current.add(id);
+            await this.states.writeValue(
+                id,
+                {
+                    name,
+                    desc: `IPv4 address of interface ${name}`,
+                    type: 'string',
+                    role: 'info.ip',
+                    read: true,
+                    write: false,
+                },
+                addresses.join(', '),
+            );
+        }
+
+        // An interface that lost its address, a modem going down for instance, must not go on showing the old one
+        for (const id of this.addressIds) {
+            if (!current.has(id)) {
+                await this.adapter.setStateAsync(id, null, true);
+                this.addressIds.delete(id);
+            }
+        }
+        for (const id of current) {
+            this.addressIds.add(id);
+        }
+    }
+
+    /**
+     * The PoE switch of each port, read over the Web API.
+     *
+     * A failure here is logged and otherwise ignored: the device answers SNMP, so it is reachable and its other
+     * values are fine — a wrong password must not mark it as gone.
+     */
+    private async pollPoe(deviceId: string): Promise<void> {
+        if (!this.api) {
+            return;
+        }
+        let status: Map<string, PoeStatus>;
+        try {
+            // Which ports have PoE does not change, so the configuration is asked once, the status every poll
+            if (!this.poeChecked) {
+                await this.learnPoePorts();
+            }
+            if (!this.poePorts.size) {
+                return;
+            }
+            status = poeStatus(await this.api.get(PORT_STATUS), new Set(this.poePorts.values()));
+        } catch (error) {
+            this.apiFailures++;
+            const message = error instanceof Error ? error.message : String(error);
+            if (this.apiFailures === 1) {
+                this.adapter.log.warn(`Web API ${this.config.host}: ${message}`);
+            } else {
+                this.adapter.log.debug(`Web API ${this.config.host}: ${message} (${this.apiFailures} in a row)`);
+            }
+            return;
+        }
+        if (this.apiFailures) {
+            this.adapter.log.info(`Web API ${this.config.host}: reachable again`);
+            this.apiFailures = 0;
+        }
+
+        await this.states.ensureChannel(`${deviceId}.ports`, 'ports');
+        for (const [rowId, apiId] of this.poePorts) {
+            const port = status.get(apiId);
+            if (!port) {
+                continue;
+            }
+            const base = `${deviceId}.ports.${rowId}`;
+            await this.states.ensureChannel(base, apiId);
+            await this.states.writeValue(`${base}.poe`, POE_STATE, port.on);
+            await this.states.writeValue(`${base}.poeActive`, POE_ACTIVE, port.active);
+            await this.states.writeValue(`${base}.poePower`, POE_POWER, port.power);
+        }
+    }
+
+    /** Read which ports have PoE at all, and say so once in the log. */
+    private async learnPoePorts(): Promise<void> {
+        const ports = poeStates(await this.api?.get(PORT_SETTINGS));
+        this.poePorts.clear();
+        for (const apiId of ports.keys()) {
+            this.poePorts.set(sanitizeId(apiId), apiId);
+        }
+        this.poeChecked = true;
+        this.adapter.log.info(
+            ports.size
+                ? `Web API ${this.config.host}: PoE switchable on ${[...ports.keys()].join(', ')}`
+                : `Web API ${this.config.host}: the device reports no PoE ports`,
+        );
+    }
+
+    /** Switch the PoE output of a port. Returns false when no web login is configured or the port has no PoE. */
+    async setPortPoe(rowId: string, on: boolean): Promise<boolean> {
+        const apiId = this.poePorts.get(rowId);
+        if (!this.api || !apiId) {
+            return false;
+        }
+        await this.api.put(`${PORT_SETTINGS}/${encodeURIComponent(apiId)}`, { poe_enable: on ? '1' : '0' });
+        this.adapter.log.info(`Web API ${this.config.host}: PoE of ${rowId} switched ${on ? 'on' : 'off'}`);
+        // Read back rather than trusting the write, so the state reflects the device
+        this.refresh();
+        return true;
+    }
+
     get controllable(): boolean {
         return !!this.config.writeCommunity;
     }
@@ -528,6 +846,34 @@ export class SnmpPoller {
                     convert: raw => (raw === String(IF_UP) ? true : raw === String(IF_DOWN) ? false : null),
                 },
                 value,
+            );
+        }
+    }
+
+    /**
+     * Name each port channel after the description set on the device ("Camera mast"), which `ifAlias` carries.
+     * Only for ports matched to an interface beyond doubt, and never over a name the user gave in ioBroker.
+     */
+    private async namePorts(
+        deviceId: string,
+        channel: string,
+        rowIds: Map<string, string>,
+        rawNames: Map<string, string>,
+    ): Promise<void> {
+        if (!this.portInterfaces.size) {
+            return;
+        }
+        const rawByRow = new Map<string, string>();
+        for (const [index, rowId] of rowIds) {
+            rawByRow.set(rowId, rawNames.get(index) || rowId);
+        }
+        const wanted = [...this.portInterfaces].map(([rowId, index]) => ({ rowId, oid: `${IF_ALIAS}.${index}` }));
+        const aliases = await this.client.get(wanted.map(entry => entry.oid));
+        for (const { rowId, oid } of wanted) {
+            await this.states.nameChannel(
+                `${deviceId}.${channel}.${rowId}`,
+                aliases.get(oid),
+                rawByRow.get(rowId) || rowId,
             );
         }
     }
@@ -633,6 +979,7 @@ export class SnmpPoller {
         if (name === 'portTable') {
             await this.mapPortInterfaces(rowIds, rawNames);
             await this.pollPortAdminStatus(deviceId, alias.channel);
+            await this.namePorts(deviceId, alias.channel, rowIds, rawNames);
         }
     }
 }
@@ -691,6 +1038,12 @@ export default class SnmpManager {
     async setPortEnabled(deviceId: string, rowId: string, enabled: boolean): Promise<boolean> {
         const poller = this.pollers.find(entry => entry.id === deviceId);
         return poller ? poller.setPortEnabled(rowId, enabled) : false;
+    }
+
+    /** Switch PoE of a port. False when the device is unknown, has no web login or the port no PoE. */
+    async setPortPoe(deviceId: string, rowId: string, on: boolean): Promise<boolean> {
+        const poller = this.pollers.find(entry => entry.id === deviceId);
+        return poller ? poller.setPortPoe(rowId, on) : false;
     }
 
     /** Match a trap sender to one of the polled devices. Only a device we already identified can be addressed. */

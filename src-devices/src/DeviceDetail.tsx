@@ -3,7 +3,7 @@
 // device must not look different depending on which tile it was opened from.
 
 import { React, MuiMaterial, AdapterReact } from '@iobroker/dm-widgets';
-import type { BoxProps, TypographyProps } from '@mui/material';
+import type { BoxProps, SwitchProps, TypographyProps } from '@mui/material';
 import type { I18n as I18nType } from '@iobroker/gui-components';
 
 import PortPanel from './PortPanel';
@@ -12,6 +12,7 @@ import { formatUptime, type DeviceInfo, type PortInfo, type WanInfo } from './ut
 const I18n = AdapterReact.I18n as typeof I18nType;
 const Box: React.ComponentType<BoxProps> = MuiMaterial?.Box;
 const Typography: React.ComponentType<TypographyProps> = MuiMaterial?.Typography;
+const Switch: React.ComponentType<SwitchProps> = MuiMaterial?.Switch;
 
 const COLORS = {
     online: '#1f8a3a',
@@ -21,7 +22,80 @@ const COLORS = {
     idle: '#9aa7b4',
     tile: '#1c232a',
     border: 'rgba(255,255,255,0.08)',
+    poe: '#f5c518',
 } as const;
+
+/**
+ * One port of the PoE list. The switch is drawn only where the port may be switched from here; otherwise the
+ * bolt shows the state, so a control that would be refused is never offered.
+ */
+function PoeRow({ port, onToggle }: { port: PortInfo; onToggle?: (port: PortInfo) => void }): React.JSX.Element {
+    const clickable = !!onToggle && port.poeSwitchable;
+    const state = !port.poe
+        ? I18n.t('telt_poe_off')
+        : port.poeActive === false
+          ? I18n.t('telt_poe_idle')
+          : port.poePower !== null
+            ? `${port.poePower} W`
+            : I18n.t('telt_poe_on');
+
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                pl: clickable ? 0 : 1,
+                pr: 1,
+                py: clickable ? 0 : 0.5,
+                borderRadius: 1,
+                boxShadow: `inset 0 0 0 1px ${COLORS.border}`,
+                minWidth: 0,
+            }}
+        >
+            {clickable ? (
+                <Switch
+                    size="small"
+                    checked={!!port.poe}
+                    onChange={() => onToggle?.(port)}
+                    slotProps={{ input: { 'aria-label': `PoE ${port.label}` } }}
+                />
+            ) : (
+                <Box
+                    component="span"
+                    sx={{ color: COLORS.poe, fontSize: 13, lineHeight: 1, opacity: port.poe ? 1 : 0.25 }}
+                >
+                    ⚡
+                </Box>
+            )}
+            <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, flexShrink: 0 }}
+            >
+                {port.label}
+            </Typography>
+            <Typography
+                variant="caption"
+                sx={{ opacity: 0.75, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+                {port.description || ''}
+            </Typography>
+            <Typography
+                variant="caption"
+                sx={{
+                    ml: 'auto',
+                    pl: 1,
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    color: port.poe && port.poeActive !== false ? COLORS.poe : undefined,
+                    opacity: port.poe && port.poeActive !== false ? 1 : 0.55,
+                }}
+            >
+                {state}
+            </Typography>
+        </Box>
+    );
+}
 
 export function panelLabels(): {
     ethernet: string;
@@ -29,6 +103,8 @@ export function panelLabels(): {
     up: string;
     down: string;
     disabled: string;
+    poeOn: string;
+    poeOff: string;
 } {
     return {
         ethernet: I18n.t('telt_ethernet'),
@@ -36,6 +112,8 @@ export function panelLabels(): {
         up: I18n.t('telt_up'),
         down: I18n.t('telt_nolink'),
         disabled: I18n.t('telt_disabled'),
+        poeOn: I18n.t('telt_poe_on'),
+        poeOff: I18n.t('telt_poe_off'),
     };
 }
 
@@ -51,9 +129,10 @@ export function wanStatusColor(status: string | null): string {
     return (status && WAN_COLORS[status]) || COLORS.unknown;
 }
 
-function WanRow({ wan }: { wan: WanInfo }): React.JSX.Element {
+function WanRow({ wan, address }: { wan: WanInfo; address?: string }): React.JSX.Element {
     const color = wanStatusColor(wan.status);
     const details = [
+        address || null,
         wan.uptime ? formatUptime(wan.uptime) : null,
         // Named for what it is: mwan3 reports its ping targets here, not the address of the interface
         wan.trackingHosts ? `${I18n.t('telt_tracking')} ${wan.trackingHosts}` : null,
@@ -101,11 +180,15 @@ function WanRow({ wan }: { wan: WanInfo }): React.JSX.Element {
 export default function DeviceDetail({
     device,
     onToggle,
+    onTogglePoe,
 }: {
     device: DeviceInfo;
     /** Absent leaves the panel display only, which is what an unconfigured write community means */
     onToggle?: (port: PortInfo) => void;
+    /** Absent shows PoE without switches */
+    onTogglePoe?: (port: PortInfo) => void;
 }): React.JSX.Element {
+    const poePorts = device.ports.filter(port => port.poe !== null);
     const edge = device.alive === null ? COLORS.unknown : device.alive ? COLORS.online : COLORS.offline;
 
     const facts: [string, string][] = [];
@@ -125,6 +208,12 @@ export default function DeviceDetail({
         if (device.signal !== null) {
             facts.push([I18n.t('telt_signal'), `${device.signal} dBm`]);
         }
+    }
+    // Next to the WAN address on a router, and the only address a switch has
+    if (device.lan) {
+        facts.push([I18n.t('telt_lan'), device.lan]);
+    }
+    if (device.isRouter) {
         if (device.wan) {
             facts.push([I18n.t('telt_wan'), device.wan]);
         }
@@ -181,6 +270,32 @@ export default function DeviceDetail({
                 </Typography>
             )}
 
+            {poePorts.length ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Typography
+                        variant="caption"
+                        sx={{ opacity: 0.6, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}
+                    >
+                        PoE
+                    </Typography>
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                            gap: 0.5,
+                        }}
+                    >
+                        {poePorts.map(port => (
+                            <PoeRow
+                                key={port.id}
+                                port={port}
+                                onToggle={onTogglePoe}
+                            />
+                        ))}
+                    </Box>
+                </Box>
+            ) : null}
+
             {device.wanInterfaces.length ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                     <Typography
@@ -193,6 +308,7 @@ export default function DeviceDetail({
                         <WanRow
                             key={wan.id}
                             wan={wan}
+                            address={device.addresses[wan.id]}
                         />
                     ))}
                 </Box>

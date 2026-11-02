@@ -23,6 +23,16 @@ export interface PortInfo {
     enabled: boolean | null;
     /** True when the state carries the write flag, i.e. a write community is configured */
     switchable: boolean;
+    /** What the port is used for, as described on the device ("Camera mast"). Null where nothing is set. */
+    description: string | null;
+    /** PoE output on or off. Only read where a web login is configured, null everywhere else. */
+    poe: boolean | null;
+    /** The PoE state carries the write flag */
+    poeSwitchable: boolean;
+    /** A device draws power from the port; false with PoE on means nothing PoE-powered is plugged in */
+    poeActive: boolean | null;
+    /** Power drawn, in watts */
+    poePower: number | null;
     /** Fibre ports are drawn in their own group, like on the device's front panel */
     fibre: boolean;
 }
@@ -35,7 +45,7 @@ export interface WanInfo {
     status: string | null;
     enabled: boolean | null;
     uptime: number | null;
-    /** The hosts mwan3 pings to judge the link. The interface address is not available over SNMP. */
+    /** The hosts mwan3 pings to judge the link — not the address of the interface, see `DeviceInfo.addresses` */
     trackingHosts: string | null;
 }
 
@@ -56,6 +66,13 @@ export interface DeviceInfo {
     temperature: number | null;
     wan: string | null;
     wanIPv6: string | null;
+    /** Address in the local network, read over SNMP for routers and switches alike */
+    lan: string | null;
+    /**
+     * IPv4 addresses by network device (`br-lan`, `wan`, `qmimux0`). Keyed by the device name, so an mwan3
+     * interface finds its address only where both are called the same — `wan`, but not `mob1s1a1`.
+     */
+    addresses: { [iface: string]: string };
     ports: PortInfo[];
     /** WAN interfaces, only routers have them */
     wanInterfaces: WanInfo[];
@@ -63,6 +80,18 @@ export interface DeviceInfo {
     io: { id: string; label: string; state: boolean | null; type: string | null }[];
     /** A device that reports mobile values is a router, everything else is treated as a switch */
     isRouter: boolean;
+}
+
+/**
+ * The description of a port, from the name of its channel: the adapter names the channel after the description
+ * set on the device, and a name given in ioBroker counts as well. A name that is just the port's own — `port1`,
+ * or `LAN` for the row `LAN_2` a RUTC reports four times — is no description.
+ */
+export function portDescription(channelName: string | undefined, portId: string): string | null {
+    if (!channelName || channelName === portId || channelName === portId.replace(/_\d+$/, '')) {
+        return null;
+    }
+    return channelName;
 }
 
 /** Highest code point ioBroker uses to close a range in an object view */
@@ -160,9 +189,10 @@ export async function readInstance(
     const devices = new Map<string, DeviceInfo>();
     const base = stateType(prefix) - 1;
 
-    // Names of the row channels. The adapter fills these from what the device reports and never overwrites them
-    // afterwards, so a channel renamed in ioBroker keeps that name — which is the only way to put a label like
-    // "Starlink" on an interface: SNMP has no such field, `ifAlias` is empty on these devices.
+    // Names of the row channels. The adapter fills these from what the device reports and never overwrites a name
+    // given in ioBroker, which is the only way to put a label like "Starlink" on a WAN interface: SNMP has no such
+    // field for them. A port is named after the description set on the switch (`ifAlias`) as long as nobody
+    // renamed it.
     const channelNames = new Map<string, string>();
     for (const [id, obj] of Object.entries(channels)) {
         if (typeof obj.common?.name === 'string' && obj.common.name) {
@@ -189,6 +219,8 @@ export async function readInstance(
             temperature: null,
             wan: null,
             wanIPv6: null,
+            lan: null,
+            addresses: {},
             ports: [],
             wanInterfaces: [],
             io: [],
@@ -230,10 +262,17 @@ export async function readInstance(
                 txBytes: null,
                 enabled: null,
                 switchable: false,
+                description: portDescription(channelNames.get(`${deviceId}.ports.${rest[1]}`), rest[1]),
+                poe: null,
+                poeSwitchable: false,
+                poeActive: null,
+                poePower: null,
                 fibre: /^sfp/i.test(rest[1]),
             };
             if (rest[2] === 'enabled') {
                 port.switchable = obj.common?.write === true;
+            } else if (rest[2] === 'poe') {
+                port.poeSwitchable = obj.common?.write === true;
             }
             map.set(rest[1], port);
         } else if (rest[0] === 'interfaces' && rest.length === 3) {
@@ -307,6 +346,7 @@ export function applyState(device: DeviceInfo, relativeId: string, value: ioBrok
             case 'network':
             case 'wan':
             case 'wanIPv6':
+            case 'lan':
                 (device as unknown as Record<string, unknown>)[parts[0]] = value === null ? null : String(value);
                 return true;
             case 'signal':
@@ -330,6 +370,15 @@ export function applyState(device: DeviceInfo, relativeId: string, value: ioBrok
             case 'enabled':
                 port.enabled = value === null ? null : !!value;
                 return true;
+            case 'poe':
+                port.poe = value === null ? null : !!value;
+                return true;
+            case 'poeActive':
+                port.poeActive = value === null ? null : !!value;
+                return true;
+            case 'poePower':
+                port.poePower = typeof value === 'number' ? value : null;
+                return true;
             case 'duplex':
                 port.duplex = value === null ? null : !!value;
                 return true;
@@ -343,6 +392,16 @@ export function applyState(device: DeviceInfo, relativeId: string, value: ioBrok
             default:
                 return false;
         }
+    }
+
+    if (parts[0] === 'addresses' && parts.length === 2) {
+        // Cleared by the adapter when the interface lost its address, a modem going down for instance
+        if (value === null || value === '') {
+            delete device.addresses[parts[1]];
+        } else {
+            device.addresses[parts[1]] = String(value);
+        }
+        return true;
     }
 
     if (parts[0] === 'interfaces' && parts.length === 3) {

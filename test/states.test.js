@@ -197,3 +197,62 @@ describe('DeviceStates', () => {
         expect(adapter.objects[DEVICE].common.name).to.equal('Emitter*1');
     });
 });
+
+describe('nameChannel', () => {
+    const PORT = `${DEVICE}.ports.port1`;
+
+    async function withPort(name, native = {}) {
+        const adapter = makeAdapter();
+        adapter.objects[PORT] = { type: 'channel', common: { name }, native };
+        return { adapter, sut: new DeviceStates(adapter) };
+    }
+
+    it('names a port after the description set on the device', async () => {
+        const { adapter, sut } = await withPort('port1');
+        await sut.nameChannel(PORT, 'ReolinkCockpit', 'port1');
+        expect(adapter.objects[PORT].common.name).to.equal('ReolinkCockpit');
+        expect(adapter.objects[PORT].native.deviceName).to.equal('ReolinkCockpit');
+    });
+
+    it('follows a description changed on the device', async () => {
+        const { adapter, sut } = await withPort('ReolinkCockpit', { deviceName: 'ReolinkCockpit' });
+        await sut.nameChannel(PORT, 'Bow camera', 'port1');
+        expect(adapter.objects[PORT].common.name).to.equal('Bow camera');
+    });
+
+    it('goes back to the port name when the description is deleted', async () => {
+        const { adapter, sut } = await withPort('ReolinkCockpit', { deviceName: 'ReolinkCockpit' });
+        await sut.nameChannel(PORT, '', 'port1');
+        expect(adapter.objects[PORT].common.name).to.equal('port1');
+    });
+
+    it('keeps a name the user gave in ioBroker', async () => {
+        const { adapter, sut } = await withPort('Cockpit camera', { deviceName: 'ReolinkCockpit' });
+        await sut.nameChannel(PORT, 'Bow camera', 'port1');
+        expect(adapter.objects[PORT].common.name).to.equal('Cockpit camera');
+
+        const translated = await withPort({ en: 'Camera', de: 'Kamera' });
+        await translated.sut.nameChannel(PORT, 'Bow camera', 'port1');
+        expect(translated.adapter.objects[PORT].common.name).to.deep.equal({ en: 'Camera', de: 'Kamera' });
+    });
+
+    it('reads the object only when the description changes', async () => {
+        const { adapter, sut } = await withPort('port1');
+        await sut.nameChannel(PORT, 'ReolinkCockpit', 'port1');
+        await sut.nameChannel(PORT, 'ReolinkCockpit', 'port1');
+        await sut.nameChannel(PORT, 'ReolinkCockpit', 'port1');
+        expect(adapter.calls.getObject).to.equal(1);
+        expect(adapter.calls.setObject).to.equal(1);
+    });
+
+    it('waits for a channel that does not exist yet', async () => {
+        const adapter = makeAdapter();
+        const sut = new DeviceStates(adapter);
+        await sut.nameChannel(PORT, 'ReolinkCockpit', 'port1');
+        expect(adapter.objects[PORT]).to.equal(undefined);
+
+        adapter.objects[PORT] = { type: 'channel', common: { name: 'port1' }, native: {} };
+        await sut.nameChannel(PORT, 'ReolinkCockpit', 'port1');
+        expect(adapter.objects[PORT].common.name).to.equal('ReolinkCockpit');
+    });
+});

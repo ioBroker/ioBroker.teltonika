@@ -42,6 +42,8 @@ export default class DeviceStates {
     private readonly aliveStates: { [deviceId: string]: boolean } = {};
     private readonly owners: { [deviceId: string]: DeviceOwner } = {};
     private readonly warned: { [key: string]: boolean } = {};
+    /** Last name `nameChannel` settled on per channel, so an unchanged description costs no object read */
+    private readonly channelNames: { [id: string]: string } = {};
     private readonly connections: { [owner in DeviceOwner]: string[] } = { mqtt: [], snmp: [] };
     private lastConnection: string | null = null;
 
@@ -147,6 +149,44 @@ export default class DeviceStates {
             common: { name },
             native: {},
         });
+    }
+
+    /**
+     * Name a channel after what the device calls it, e.g. a port after the description set on the switch.
+     *
+     * A name given in ioBroker wins. The channel is renamed only while it still carries a name the adapter gave
+     * it — the `fallback` it was created with, or the last name written here, which is kept in
+     * `native.deviceName` for exactly this check. A description deleted on the device falls back to `fallback`.
+     *
+     * @param id channel id below the instance
+     * @param name what the device reports, empty for nothing
+     * @param fallback the name the channel was created with, the raw port name
+     */
+    async nameChannel(id: string, name: string | null | undefined, fallback: string): Promise<void> {
+        const wanted = name?.trim() || fallback;
+        if (this.channelNames[id] === wanted) {
+            return;
+        }
+        this.channelNames[id] = wanted;
+        const obj = await this.adapter.getObjectAsync(id);
+        if (!obj || obj.type !== 'channel') {
+            // Not created yet; the next poll comes back here once it is
+            delete this.channelNames[id];
+            return;
+        }
+        const current = obj.common?.name;
+        if (current === wanted) {
+            return;
+        }
+        const ours: unknown = obj.native?.deviceName;
+        // A translated name object, or a string the adapter never wrote: renamed by the user
+        if (typeof current !== 'string' || (current && current !== fallback && current !== ours)) {
+            return;
+        }
+        obj.common.name = wanted;
+        obj.native = { ...obj.native, deviceName: wanted };
+        await this.adapter.setObjectAsync(id, obj);
+        this.adapter.log.info(`Channel ${id} named "${wanted}"`);
     }
 
     async setAlive(deviceId: string, alive: boolean): Promise<void> {

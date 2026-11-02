@@ -98,6 +98,9 @@
     "User:": "用户",
     "Version": "版本",
     "WARNING! Check README.md!": "警告！检查 README.md！",
+    "Web password": "Web 密码",
+    "Web user": "Web 用户",
+    "Web user and password are only needed to switch PoE, which SNMP cannot do. The adapter logs in to the Web API of the device over HTTPS and accepts its self-signed certificate.": "Web 用户和密码仅用于切换 PoE，SNMP 无法实现此功能。适配器通过 HTTPS 登录设备的 Web API，并接受其自签名证书。",
     "Wi-Fi client list": "Wi-Fi 客户端列表",
     "Wi-Fi radios and networks": "Wi-Fi 射频与网络",
     "Write community": "写入团体名"

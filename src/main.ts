@@ -44,6 +44,7 @@ export class TeltonikaAdapter extends Adapter {
             device.authKey = this.decryptCredential(device.authKey);
             device.privKey = this.decryptCredential(device.privKey);
             device.writeCommunity = this.decryptCredential(device.writeCommunity);
+            device.apiPassword = this.decryptCredential(device.apiPassword);
         }
         // Presence watches the persons the user named, whichever router reports their devices
         const presence = new PresenceTracker(this, config.presenceDevices || [], {
@@ -68,8 +69,9 @@ export class TeltonikaAdapter extends Adapter {
                 config.snmpWireless ? 'wireless' : null,
                 wantsClients ? 'clients' : null,
             ].filter((branch): branch is string => branch !== null);
-            // Only the port switches are writable; everything else the adapter creates is read-only
+            // Only the port and PoE switches are writable; everything else the adapter creates is read-only
             await this.subscribeStatesAsync('*.ports.*.enabled');
+            await this.subscribeStatesAsync('*.ports.*.poe');
             this.snmp = new SnmpManager(this, deviceStates, branches, {
                 presence: this.presence,
                 exposeClients: !!config.snmpWifiClients,
@@ -210,21 +212,25 @@ export class TeltonikaAdapter extends Adapter {
     }
 
     /**
-     * A port switch was written. Acknowledged states are the adapter's own readings and must be ignored, or
-     * every poll would trigger a write back to the device.
+     * A port or PoE switch was written. Acknowledged states are the adapter's own readings and must be ignored,
+     * or every poll would trigger a write back to the device.
      */
     private async onStateChange(id: string, state: ioBroker.State | null | undefined): Promise<void> {
         if (!state || state.ack || !this.snmp) {
             return;
         }
         const local = id.startsWith(`${this.namespace}.`) ? id.slice(this.namespace.length + 1) : id;
-        const match = /^(.+)\.ports\.([^.]+)\.enabled$/.exec(local);
+        const match = /^(.+)\.ports\.([^.]+)\.(enabled|poe)$/.exec(local);
         if (!match) {
             return;
         }
-        const [, deviceId, port] = match;
+        const [, deviceId, port, what] = match;
         try {
-            if (!(await this.snmp.setPortEnabled(deviceId, port, !!state.val))) {
+            if (what === 'poe') {
+                if (!(await this.snmp.setPortPoe(deviceId, port, !!state.val))) {
+                    this.log.warn(`Cannot switch ${local}: no web login configured, or the port has no PoE`);
+                }
+            } else if (!(await this.snmp.setPortEnabled(deviceId, port, !!state.val))) {
                 this.log.warn(`Cannot switch ${local}: no write community configured, or the port has no match`);
             }
         } catch (error) {

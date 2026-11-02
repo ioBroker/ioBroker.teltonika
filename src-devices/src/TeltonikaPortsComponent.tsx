@@ -186,6 +186,17 @@ export class TeltonikaPortsComponent extends WidgetGeneric<State, Settings> {
             .setState(`${device.id}.ports.${port.id}.enabled`, { val: !port.enabled, ack: false });
     }
 
+    /** Same gate as the port switch: off unless switching is allowed in the widget settings */
+    private togglePoe(port: PortInfo): void {
+        const device = this.state.device;
+        if (!device || !port.poeSwitchable || !this.props.settings.allowSwitching) {
+            return;
+        }
+        void this.props.stateContext
+            .getSocket()
+            .setState(`${device.id}.ports.${port.id}.poe`, { val: !port.poe, ack: false });
+    }
+
     private renderStrip(): React.JSX.Element | null {
         const device = this.state.device;
         if (!device?.ports.length) {
@@ -196,7 +207,7 @@ export class TeltonikaPortsComponent extends WidgetGeneric<State, Settings> {
                 {device.ports.map(port => (
                     <Box
                         key={port.id}
-                        title={port.label}
+                        title={port.description ? `${port.label} · ${port.description}` : port.label}
                         sx={{
                             width: 8,
                             height: 22,
@@ -259,6 +270,8 @@ export class TeltonikaPortsComponent extends WidgetGeneric<State, Settings> {
                                 up: I18n.t('telt_up'),
                                 down: I18n.t('telt_nolink'),
                                 disabled: I18n.t('telt_disabled'),
+                                poeOn: I18n.t('telt_poe_on'),
+                                poeOff: I18n.t('telt_poe_off'),
                             }}
                         />
                     </div>
@@ -321,6 +334,9 @@ export class TeltonikaPortsComponent extends WidgetGeneric<State, Settings> {
                         device={device}
                         onToggle={
                             this.props.settings.allowSwitching ? port => this.togglePort(port) : undefined
+                        }
+                        onTogglePoe={
+                            this.props.settings.allowSwitching ? port => this.togglePoe(port) : undefined
                         }
                     />
                 </DialogContent>

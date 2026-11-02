@@ -38,7 +38,7 @@ export function PortStrip({ device, height }: { device: DeviceInfo; height: numb
             {device.ports.map(port => (
                 <Box
                     key={port.id}
-                    title={port.label}
+                    title={port.description ? `${port.label} · ${port.description}` : port.label}
                     sx={{
                         width: 6,
                         height,
@@ -85,6 +85,13 @@ export function DeviceTile({ device }: { device: DeviceInfo }): React.JSX.Elemen
     if (device.cpu !== null) {
         details.push(`CPU ${Math.round(device.cpu)} %`);
     }
+    // Labelled, because a router shows two addresses on the one line and they cannot be told apart otherwise
+    const addresses = [
+        device.lan ? `${I18n.t('telt_lan')} ${device.lan}` : null,
+        device.wan ? `${I18n.t('telt_wan')} ${device.wan}` : null,
+    ]
+        .filter(Boolean)
+        .join(' · ');
 
     return (
         <Box
@@ -166,7 +173,7 @@ export function DeviceTile({ device }: { device: DeviceInfo }): React.JSX.Elemen
                 </Box>
             ) : null}
 
-            {device.wan ? (
+            {addresses ? (
                 <Typography
                     variant="caption"
                     sx={{
@@ -177,7 +184,7 @@ export function DeviceTile({ device }: { device: DeviceInfo }): React.JSX.Elemen
                         textOverflow: 'ellipsis',
                     }}
                 >
-                    {device.wan}
+                    {addresses}
                 </Typography>
             ) : null}
 

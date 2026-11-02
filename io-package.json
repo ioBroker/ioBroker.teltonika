@@ -239,6 +239,7 @@
     "snmpDevices.writeCommunity",
     "snmpDevices.authKey",
     "snmpDevices.privKey",
+    "snmpDevices.apiPassword",
     "trapCommunity",
     "scanCommunity"
   ],
@@ -248,6 +249,7 @@
     "snmpDevices.writeCommunity",
     "snmpDevices.authKey",
     "snmpDevices.privKey",
+    "snmpDevices.apiPassword",
     "trapCommunity",
     "scanCommunity"
   ],

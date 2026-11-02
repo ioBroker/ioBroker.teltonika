@@ -21,7 +21,7 @@ import DeviceDetail from '@teltonika/DeviceDetail';
 import { DeviceTile, DevicesSummary, sortDevices } from '@teltonika/DeviceTile';
 import type { DeviceInfo, PortInfo } from '@teltonika/utils';
 import DeviceDialog from './DeviceDialog';
-import { togglePort, useDevices } from './useDevices';
+import { togglePoe, togglePort, useDevices } from './useDevices';
 
 type Mode = 'summary' | 'tiles' | 'detail';
 
@@ -163,6 +163,8 @@ function DevicesBody({
     const devices = sortDevices(onlyAlive ? all.filter(device => device.alive !== false) : all);
     const onToggle = (device: DeviceInfo): ((port: PortInfo) => void) | undefined =>
         allowSwitching ? port => togglePort(socket, device, port) : undefined;
+    const onTogglePoe = (device: DeviceInfo): ((port: PortInfo) => void) | undefined =>
+        allowSwitching ? port => togglePoe(socket, device, port) : undefined;
 
     const details = devices.length ? (
         devices.map(device => (
@@ -170,6 +172,7 @@ function DevicesBody({
                 key={device.id}
                 device={device}
                 onToggle={onToggle(device)}
+                onTogglePoe={onTogglePoe(device)}
             />
         ))
     ) : (

@@ -98,6 +98,9 @@
     "User:": "Користувач",
     "Version": "Версія",
     "WARNING! Check README.md!": "УВАГА! Перевірте README.md!",
+    "Web password": "Веб-пароль",
+    "Web user": "Веб-користувач",
+    "Web user and password are only needed to switch PoE, which SNMP cannot do. The adapter logs in to the Web API of the device over HTTPS and accepts its self-signed certificate.": "Веб-користувач і пароль потрібні лише для перемикання PoE, що неможливо через SNMP. Адаптер входить у Web API пристрою через HTTPS і приймає його самопідписаний сертифікат.",
     "Wi-Fi client list": "Список клієнтів Wi-Fi",
     "Wi-Fi radios and networks": "Модулі та мережі Wi-Fi",
     "Write community": "Community для запису"

@@ -98,6 +98,9 @@
     "User:": "Benutzer",
     "Version": "Version",
     "WARNING! Check README.md!": "WARNUNG! Überprüfen Sie README.md!",
+    "Web password": "Web-Passwort",
+    "Web user": "Web-Benutzer",
+    "Web user and password are only needed to switch PoE, which SNMP cannot do. The adapter logs in to the Web API of the device over HTTPS and accepts its self-signed certificate.": "Web-Benutzer und -Passwort werden nur zum Schalten von PoE gebraucht, das über SNMP nicht geht. Der Adapter meldet sich per HTTPS an der Web-API des Geräts an und akzeptiert dessen selbstsigniertes Zertifikat.",
     "Wi-Fi client list": "WLAN-Client-Liste",
     "Wi-Fi radios and networks": "WLAN-Funkmodule und Netze",
     "Write community": "Schreib-Community"

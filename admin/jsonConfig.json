@@ -267,6 +267,20 @@
                         },
                         {
                             "type": "text",
+                            "attr": "apiUser",
+                            "title": "Web user",
+                            "width": "110px",
+                            "default": ""
+                        },
+                        {
+                            "type": "password",
+                            "attr": "apiPassword",
+                            "title": "Web password",
+                            "width": "130px",
+                            "default": ""
+                        },
+                        {
+                            "type": "text",
                             "attr": "user",
                             "title": "User",
                             "width": "130px",
@@ -445,6 +459,16 @@
                     "newLine": true,
                     "type": "staticText",
                     "text": "Community strings and SNMPv3 keys in this table are stored encrypted with the system secret. Anyone with access to the ioBroker host can still read them, so grant no more rights than the adapter needs.",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 12,
+                    "lg": 12,
+                    "xl": 12
+                },
+                "_apiHint": {
+                    "newLine": true,
+                    "type": "staticText",
+                    "text": "Web user and password are only needed to switch PoE, which SNMP cannot do. The adapter logs in to the Web API of the device over HTTPS and accepts its self-signed certificate.",
                     "xs": 12,
                     "sm": 12,
                     "md": 12,
