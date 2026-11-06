@@ -76,6 +76,14 @@ Persons like fb-checkpresence, with the **same object tree as ioBroker.tr-064** 
 - `start()` runs even without configuration: it deletes everything below `presence` that is not wanted any more (removed persons, the flat `presence.<name>.connected` layout of the first version) and takes over `present`, times, `lastSeen`, `history` and the sums of today from the stored states. Objects are written with `extendObject()`, which keeps `common.custom` (history settings).
 - The channel of a person carries `native.person` = the configured name: the widgets store the name, not an object ID. Messages `presence` (`{ persons, groups }`) and `personList` (`[{ label, value }]` for `autocompleteSendTo`).
 
+### Web components (`src-webcomponents/`)
+
+The four vis-2 widgets as `@iobroker/web-components` (`<iob-teltonika-devices>`, `-ports`, `-person`, `-presence`), listed in `common.webComponents`. Own `package.json`; plain React + CSS in a shadow root, React taken from the host. One `vite build --mode <name>` per component, so each is one module file; the build writes the manifests and fails if one does not pass `checkManifest()`. Output `admin/webcomponents/` is committed - `npm run build:wc`, `npm run lint:wc`, `npm run check:wc`.
+
+- The device views compile in `readInstance()`/`applyState()` of `src-devices/src/utils.ts`, the presence views `src-devices/src/presenceApi.ts` - change those and the web components follow on the next build.
+- `name` of a manifest must equal the `label` of the devices widget in `common.deviceWidgets` in every language (the build checks it), so devices shows its own widget instead of the component.
+- The words come from the dictionaries of `src-devices` (`telt_*`), `src-widgets` (the rest) and `src/ownWords.ts` (`wc_*`); `src/wordKeys.ts` picks the ones each module carries.
+
 ## Conventions
 
 - Changelog entries go in `README.md` under a `### **WORK IN PROGRESS**` heading (the placeholder comment above the Changelog section marks the spot). Do **not** hand-edit the `news` block in `io-package.json` — the release script generates it from the README and bumps versions in both files.

@@ -172,7 +172,19 @@
       "components": [
         {
           "name": "TeltonikaDevicesComponent",
-          "label": "Teltonika devices",
+          "label": {
+            "en": "Teltonika devices",
+            "de": "Teltonika-Geräte",
+            "ru": "Устройства Teltonika",
+            "pt": "Dispositivos Teltonika",
+            "nl": "Teltonika-apparaten",
+            "fr": "Appareils Teltonika",
+            "it": "Dispositivi Teltonika",
+            "es": "Dispositivos Teltonika",
+            "pl": "Urządzenia Teltonika",
+            "uk": "Пристрої Teltonika",
+            "zh-cn": "Teltonika 设备"
+          },
           "description": {
             "en": "Shows all Teltonika devices as tiles, with port states and mobile status",
             "de": "Zeigt alle Teltonika-Geräte als Kacheln, mit Port-Zuständen und Mobilfunkstatus",
@@ -190,7 +202,19 @@
         },
         {
           "name": "TeltonikaPortsComponent",
-          "label": "Teltonika ports",
+          "label": {
+            "en": "Teltonika ports",
+            "de": "Teltonika-Ports",
+            "ru": "Порты Teltonika",
+            "pt": "Portas Teltonika",
+            "nl": "Teltonika-poorten",
+            "fr": "Ports Teltonika",
+            "it": "Porte Teltonika",
+            "es": "Puertos Teltonika",
+            "pl": "Porty Teltonika",
+            "uk": "Порти Teltonika",
+            "zh-cn": "Teltonika 端口"
+          },
           "description": {
             "en": "Front panel of one device: link, speed and throughput per port",
             "de": "Frontblende eines Geräts: Link, Geschwindigkeit und Durchsatz je Port",
@@ -208,7 +232,19 @@
         },
         {
           "name": "TeltonikaPersonComponent",
-          "label": "Teltonika person",
+          "label": {
+            "en": "Teltonika person",
+            "de": "Teltonika Person",
+            "ru": "Teltonika персона",
+            "pt": "Teltonika pessoa",
+            "nl": "Teltonika persoon",
+            "fr": "Teltonika personne",
+            "it": "Teltonika persona",
+            "es": "Teltonika persona",
+            "pl": "Teltonika osoba",
+            "uk": "Teltonika особа",
+            "zh-cn": "Teltonika 人员"
+          },
           "description": {
             "en": "A person of the presence detection: at home or away, since when, last arrival and departure, history on click",
             "de": "Eine Person der Anwesenheitserkennung: zu Hause oder abwesend, seit wann, letztes Kommen und Gehen, Verlauf per Klick",
@@ -242,6 +278,12 @@
         ]
       }
     },
+    "webComponents": [
+      "webcomponents/teltonika-devices.json",
+      "webcomponents/teltonika-ports.json",
+      "webcomponents/teltonika-person.json",
+      "webcomponents/teltonika-presence.json"
+    ],
     "restartAdapters": [
       "vis-2"
     ]

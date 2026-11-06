@@ -1,0 +1,160 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-teltonika-ports",
+    "name": {
+        "en": "Teltonika ports",
+        "de": "Teltonika-Ports",
+        "ru": "Порты Teltonika",
+        "pt": "Portas Teltonika",
+        "nl": "Teltonika-poorten",
+        "fr": "Ports Teltonika",
+        "it": "Porte Teltonika",
+        "es": "Puertos Teltonika",
+        "pl": "Porty Teltonika",
+        "uk": "Порти Teltonika",
+        "zh-cn": "Teltonika 端口"
+    },
+    "description": {
+        "en": "Front panel of one device: link, speed and throughput per port",
+        "de": "Frontblende eines Geräts: Link, Geschwindigkeit und Durchsatz je Port",
+        "ru": "Передняя панель одного устройства: линк, скорость и трафик по портам",
+        "pt": "Painel frontal de um dispositivo: ligação, velocidade e tráfego por porta",
+        "nl": "Frontpaneel van één apparaat: link, snelheid en doorvoer per poort",
+        "fr": "Face avant d'un appareil : lien, débit et trafic par port",
+        "it": "Pannello frontale di un dispositivo: collegamento, velocità e traffico per porta",
+        "es": "Panel frontal de un dispositivo: enlace, velocidad y tráfico por puerto",
+        "pl": "Panel przedni urządzenia: łącze, prędkość i ruch na port",
+        "uk": "Передня панель пристрою: лінк, швидкість і трафік по портах",
+        "zh-cn": "单台设备的前面板：每个端口的链路、速率与流量"
+    },
+    "icon": "../dm-widgets/ports.svg",
+    "module": "teltonika-ports.js",
+    "size": {
+        "width": 400,
+        "height": 200
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "device": {
+                "type": "objectId",
+                "types": "channel",
+                "root": "teltonika",
+                "label": {
+                    "en": "Device channel",
+                    "de": "Gerätekanal",
+                    "ru": "Канал устройства",
+                    "pt": "Canal do dispositivo",
+                    "nl": "Apparaatkanaal",
+                    "fr": "Canal de l'appareil",
+                    "it": "Canale del dispositivo",
+                    "es": "Canal del dispositivo",
+                    "pl": "Kanał urządzenia",
+                    "uk": "Канал пристрою",
+                    "zh-cn": "设备通道"
+                },
+                "help": {
+                    "en": "For example teltonika.0.6007866821, empty takes the first device that has ports",
+                    "de": "Zum Beispiel teltonika.0.6007866821, leer nimmt das erste Gerät mit Ports",
+                    "ru": "Например teltonika.0.6007866821, пусто — первое устройство с портами",
+                    "pt": "Por exemplo teltonika.0.6007866821, vazio usa o primeiro dispositivo com portas",
+                    "nl": "Bijvoorbeeld teltonika.0.6007866821, leeg neemt het eerste apparaat met poorten",
+                    "fr": "Par exemple teltonika.0.6007866821, vide prend le premier appareil avec des ports",
+                    "it": "Ad esempio teltonika.0.6007866821, vuoto prende il primo dispositivo con porte",
+                    "es": "Por ejemplo teltonika.0.6007866821, vacío toma el primer dispositivo con puertos",
+                    "pl": "Na przykład teltonika.0.6007866821, puste bierze pierwsze urządzenie z portami",
+                    "uk": "Наприклад teltonika.0.6007866821, порожнє бере перший пристрій із портами",
+                    "zh-cn": "例如 teltonika.0.6007866821，留空则取第一个带端口的设备"
+                }
+            },
+            "instance": {
+                "type": "instance",
+                "adapter": "teltonika",
+                "default": "teltonika.0",
+                "label": {
+                    "en": "Teltonika adapter instance",
+                    "de": "Teltonika-Instanz",
+                    "ru": "Экземпляр адаптера Teltonika",
+                    "pt": "Instância do adaptador Teltonika",
+                    "nl": "Teltonika-adapterinstantie",
+                    "fr": "Instance de l'adaptateur Teltonika",
+                    "it": "Istanza dell'adattatore Teltonika",
+                    "es": "Instancia del adaptador Teltonika",
+                    "pl": "Instancja adaptera Teltonika",
+                    "uk": "Екземпляр адаптера Teltonika",
+                    "zh-cn": "Teltonika 适配器实例"
+                },
+                "hidden": "!!data.device"
+            },
+            "mode": {
+                "type": "select",
+                "default": "panel",
+                "label": {
+                    "en": "Display",
+                    "de": "Anzeige",
+                    "ru": "Отображение",
+                    "pt": "Exibição",
+                    "nl": "Weergave",
+                    "fr": "Affichage",
+                    "it": "Visualizzazione",
+                    "es": "Visualización",
+                    "pl": "Widok",
+                    "uk": "Відображення",
+                    "zh-cn": "显示"
+                },
+                "options": [
+                    {
+                        "value": "panel",
+                        "label": {
+                            "en": "Front panel (click opens the details)",
+                            "de": "Frontblende (Klick öffnet die Details)",
+                            "ru": "Передняя панель (щелчок открывает подробности)",
+                            "pt": "Painel frontal (clique abre os detalhes)",
+                            "nl": "Frontpaneel (klik opent de details)",
+                            "fr": "Face avant (un clic ouvre les détails)",
+                            "it": "Pannello frontale (il clic apre i dettagli)",
+                            "es": "Panel frontal (un clic abre los detalles)",
+                            "pl": "Panel przedni (kliknięcie otwiera szczegóły)",
+                            "uk": "Передня панель (клік відкриває подробиці)",
+                            "zh-cn": "前面板（点击打开详情）"
+                        }
+                    },
+                    {
+                        "value": "detail",
+                        "label": {
+                            "en": "Details of every device",
+                            "de": "Details aller Geräte",
+                            "ru": "Подробности всех устройств",
+                            "pt": "Detalhes de todos os dispositivos",
+                            "nl": "Details van alle apparaten",
+                            "fr": "Détails de tous les appareils",
+                            "it": "Dettagli di tutti i dispositivi",
+                            "es": "Detalles de todos los dispositivos",
+                            "pl": "Szczegóły wszystkich urządzeń",
+                            "uk": "Подробиці всіх пристроїв",
+                            "zh-cn": "所有设备的详情"
+                        }
+                    }
+                ]
+            },
+            "allowSwitching": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Allow switching ports",
+                    "de": "Ports schalten erlauben",
+                    "ru": "Разрешить переключение портов",
+                    "pt": "Permitir comutar portas",
+                    "nl": "Poorten schakelen toestaan",
+                    "fr": "Autoriser la commutation des ports",
+                    "it": "Consenti la commutazione delle porte",
+                    "es": "Permitir conmutar puertos",
+                    "pl": "Zezwól na przełączanie portów",
+                    "uk": "Дозволити перемикання портів",
+                    "zh-cn": "允许切换端口"
+                }
+            }
+        }
+    }
+}

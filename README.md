@@ -199,6 +199,15 @@ The same two views are available as a widget set for **vis-2** (set *Teltonika*)
 
 Switching ports and PoE from the widgets is off by default and has to be enabled in the widget's settings.
 
+### Web components
+The four vis-2 widgets also exist as web components (`@iobroker/web-components`), listed in
+`common.webComponents`, for hosts like Aura, vis-2, admin and ioBroker.devices: `<iob-teltonika-devices>`,
+`<iob-teltonika-ports>`, `<iob-teltonika-person>` and `<iob-teltonika-presence>`. Each one is a single module in
+`admin/webcomponents/` next to its manifest; React comes from the host. They take the colors of the host's theme,
+fit their content to the box they are given, and write nothing while the host is in edit mode. The person is chosen
+as the channel `teltonika.<n>.presence.persons.<name>`, and a click on it shows the comings and goings in a dialog
+of the host. The sources are in `src-webcomponents/` (`npm run build:wc`).
+
 ### Traps
 The adapter can listen for SNMP traps. Enable it under the *SNMP* tab and point the device at this host under
 *Services → SNMP → Trap Settings*. Note that port 162 is privileged on Linux, so a higher port may be needed.
@@ -213,6 +222,9 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+* (@GermanBluefox) Added the web components `<iob-teltonika-devices>`, `<iob-teltonika-ports>`, `<iob-teltonika-person>` and `<iob-teltonika-presence>` (`@iobroker/web-components`) for Aura, vis-2, admin and other hosts
+
 ### 1.2.0 (2026-11-02)
 * (@GermanBluefox) Added the LAN address of every SNMP device as `<device>.lan`, and all its IPv4 addresses per interface under `<device>.addresses`, read from the IP-MIB
 * (@GermanBluefox) Added switching PoE per port (`<device>.ports.<name>.poe`) over the Web API of the device, with whether a device draws power (`poeActive`) and how much (`poePower`), for devices with a web password configured (the user defaults to `admin`)

@@ -1,0 +1,161 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-teltonika-devices",
+    "name": {
+        "en": "Teltonika devices",
+        "de": "Teltonika-Geräte",
+        "ru": "Устройства Teltonika",
+        "pt": "Dispositivos Teltonika",
+        "nl": "Teltonika-apparaten",
+        "fr": "Appareils Teltonika",
+        "it": "Dispositivi Teltonika",
+        "es": "Dispositivos Teltonika",
+        "pl": "Urządzenia Teltonika",
+        "uk": "Пристрої Teltonika",
+        "zh-cn": "Teltonika 设备"
+    },
+    "description": {
+        "en": "Shows all Teltonika devices as tiles, with port states and mobile status",
+        "de": "Zeigt alle Teltonika-Geräte als Kacheln, mit Port-Zuständen und Mobilfunkstatus",
+        "ru": "Показывает все устройства Teltonika плитками, с состоянием портов и мобильной сети",
+        "pt": "Mostra todos os dispositivos Teltonika em mosaicos, com estados das portas e estado móvel",
+        "nl": "Toont alle Teltonika-apparaten als tegels, met poortstatus en mobiele status",
+        "fr": "Affiche tous les appareils Teltonika sous forme de tuiles, avec l'état des ports et du mobile",
+        "it": "Mostra tutti i dispositivi Teltonika come riquadri, con lo stato delle porte e della rete mobile",
+        "es": "Muestra todos los dispositivos Teltonika como mosaicos, con el estado de los puertos y móvil",
+        "pl": "Pokazuje wszystkie urządzenia Teltonika jako kafelki, ze stanem portów i sieci mobilnej",
+        "uk": "Показує всі пристрої Teltonika плитками, зі станом портів і мобільної мережі",
+        "zh-cn": "以磁贴显示所有 Teltonika 设备，含端口状态与移动网络状态"
+    },
+    "icon": "../dm-widgets/devices.svg",
+    "module": "teltonika-devices.js",
+    "size": {
+        "width": 320,
+        "height": 220
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "teltonika",
+                "default": "teltonika.0",
+                "label": {
+                    "en": "Teltonika adapter instance",
+                    "de": "Teltonika-Instanz",
+                    "ru": "Экземпляр адаптера Teltonika",
+                    "pt": "Instância do adaptador Teltonika",
+                    "nl": "Teltonika-adapterinstantie",
+                    "fr": "Instance de l'adaptateur Teltonika",
+                    "it": "Istanza dell'adattatore Teltonika",
+                    "es": "Instancia del adaptador Teltonika",
+                    "pl": "Instancja adaptera Teltonika",
+                    "uk": "Екземпляр адаптера Teltonika",
+                    "zh-cn": "Teltonika 适配器实例"
+                }
+            },
+            "mode": {
+                "type": "select",
+                "default": "summary",
+                "label": {
+                    "en": "Display",
+                    "de": "Anzeige",
+                    "ru": "Отображение",
+                    "pt": "Exibição",
+                    "nl": "Weergave",
+                    "fr": "Affichage",
+                    "it": "Visualizzazione",
+                    "es": "Visualización",
+                    "pl": "Widok",
+                    "uk": "Відображення",
+                    "zh-cn": "显示"
+                },
+                "options": [
+                    {
+                        "value": "summary",
+                        "label": {
+                            "en": "Summary (click opens the details)",
+                            "de": "Zusammenfassung (Klick öffnet die Details)",
+                            "ru": "Сводка (щелчок открывает подробности)",
+                            "pt": "Resumo (clique abre os detalhes)",
+                            "nl": "Samenvatting (klik opent de details)",
+                            "fr": "Résumé (un clic ouvre les détails)",
+                            "it": "Riepilogo (il clic apre i dettagli)",
+                            "es": "Resumen (un clic abre los detalles)",
+                            "pl": "Podsumowanie (kliknięcie otwiera szczegóły)",
+                            "uk": "Зведення (клік відкриває подробиці)",
+                            "zh-cn": "摘要（点击打开详情）"
+                        }
+                    },
+                    {
+                        "value": "tiles",
+                        "label": {
+                            "en": "Tile per device (click opens the details)",
+                            "de": "Kachel je Gerät (Klick öffnet die Details)",
+                            "ru": "Плитка на устройство (щелчок открывает подробности)",
+                            "pt": "Mosaico por dispositivo (clique abre os detalhes)",
+                            "nl": "Tegel per apparaat (klik opent de details)",
+                            "fr": "Une tuile par appareil (un clic ouvre les détails)",
+                            "it": "Riquadro per dispositivo (il clic apre i dettagli)",
+                            "es": "Mosaico por dispositivo (un clic abre los detalles)",
+                            "pl": "Kafelek na urządzenie (kliknięcie otwiera szczegóły)",
+                            "uk": "Плитка на пристрій (клік відкриває подробиці)",
+                            "zh-cn": "每台设备一个磁贴（点击打开详情）"
+                        }
+                    },
+                    {
+                        "value": "detail",
+                        "label": {
+                            "en": "Details of every device",
+                            "de": "Details aller Geräte",
+                            "ru": "Подробности всех устройств",
+                            "pt": "Detalhes de todos os dispositivos",
+                            "nl": "Details van alle apparaten",
+                            "fr": "Détails de tous les appareils",
+                            "it": "Dettagli di tutti i dispositivi",
+                            "es": "Detalles de todos los dispositivos",
+                            "pl": "Szczegóły wszystkich urządzeń",
+                            "uk": "Подробиці всіх пристроїв",
+                            "zh-cn": "所有设备的详情"
+                        }
+                    }
+                ]
+            },
+            "onlyAlive": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Hide unreachable devices",
+                    "de": "Nicht erreichbare Geräte ausblenden",
+                    "ru": "Скрыть недоступные устройства",
+                    "pt": "Ocultar dispositivos inacessíveis",
+                    "nl": "Onbereikbare apparaten verbergen",
+                    "fr": "Masquer les appareils injoignables",
+                    "it": "Nascondi i dispositivi non raggiungibili",
+                    "es": "Ocultar dispositivos inaccesibles",
+                    "pl": "Ukryj nieosiągalne urządzenia",
+                    "uk": "Приховати недоступні пристрої",
+                    "zh-cn": "隐藏无法访问的设备"
+                }
+            },
+            "allowSwitching": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Allow switching ports",
+                    "de": "Ports schalten erlauben",
+                    "ru": "Разрешить переключение портов",
+                    "pt": "Permitir comutar portas",
+                    "nl": "Poorten schakelen toestaan",
+                    "fr": "Autoriser la commutation des ports",
+                    "it": "Consenti la commutazione delle porte",
+                    "es": "Permitir conmutar puertos",
+                    "pl": "Zezwól na przełączanie portów",
+                    "uk": "Дозволити перемикання портів",
+                    "zh-cn": "允许切换端口"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,475 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-teltonika-person",
+    "name": {
+        "en": "Teltonika person",
+        "de": "Teltonika Person",
+        "ru": "Teltonika персона",
+        "pt": "Teltonika pessoa",
+        "nl": "Teltonika persoon",
+        "fr": "Teltonika personne",
+        "it": "Teltonika persona",
+        "es": "Teltonika persona",
+        "pl": "Teltonika osoba",
+        "uk": "Teltonika особа",
+        "zh-cn": "Teltonika 人员"
+    },
+    "description": {
+        "en": "A person of the presence detection: at home or away, since when, last arrival and departure, history on click",
+        "de": "Eine Person der Anwesenheitserkennung: zu Hause oder abwesend, seit wann, letztes Kommen und Gehen, Verlauf per Klick",
+        "ru": "Человек из определения присутствия: дома или нет, с какого времени, последний приход и уход, история по щелчку",
+        "pt": "Uma pessoa da deteção de presença: em casa ou ausente, desde quando, última chegada e saída, histórico com um clique",
+        "nl": "Een persoon van de aanwezigheidsdetectie: thuis of weg, sinds wanneer, laatste aankomst en vertrek, geschiedenis met een klik",
+        "fr": "Une personne de la détection de présence : à la maison ou absente, depuis quand, dernière arrivée et départ, historique par un clic",
+        "it": "Una persona del rilevamento di presenza: a casa o fuori, da quando, ultimo arrivo e uscita, cronologia con un clic",
+        "es": "Una persona de la detección de presencia: en casa o fuera, desde cuándo, última llegada y salida, historial con un clic",
+        "pl": "Osoba z wykrywania obecności: w domu lub poza nim, od kiedy, ostatnie przyjście i wyjście, historia po kliknięciu",
+        "uk": "Особа з визначення присутності: вдома чи ні, з якого часу, останній прихід і відхід, історія за клацанням",
+        "zh-cn": "在家检测中的人员：在家或外出、持续时间、最近到达与离开，点击查看历史"
+    },
+    "icon": "../dm-widgets/person.svg",
+    "module": "teltonika-person.js",
+    "size": {
+        "width": 300,
+        "height": 220
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "person": {
+                "type": "objectId",
+                "types": "channel",
+                "root": "teltonika",
+                "label": {
+                    "en": "Person",
+                    "de": "Person",
+                    "ru": "Человек",
+                    "pt": "Pessoa",
+                    "nl": "Persoon",
+                    "fr": "Personne",
+                    "it": "Persona",
+                    "es": "Persona",
+                    "pl": "Osoba",
+                    "uk": "Особа",
+                    "zh-cn": "人员"
+                },
+                "help": {
+                    "en": "The channel of the person: teltonika.0.presence.persons.<name>",
+                    "de": "Der Kanal der Person: teltonika.0.presence.persons.<Name>",
+                    "ru": "Канал человека: teltonika.0.presence.persons.<имя>",
+                    "pt": "O canal da pessoa: teltonika.0.presence.persons.<nome>",
+                    "nl": "Het kanaal van de persoon: teltonika.0.presence.persons.<naam>",
+                    "fr": "Le canal de la personne : teltonika.0.presence.persons.<nom>",
+                    "it": "Il canale della persona: teltonika.0.presence.persons.<nome>",
+                    "es": "El canal de la persona: teltonika.0.presence.persons.<nombre>",
+                    "pl": "Kanał osoby: teltonika.0.presence.persons.<nazwa>",
+                    "uk": "Канал особи: teltonika.0.presence.persons.<ім'я>",
+                    "zh-cn": "人员的通道：teltonika.0.presence.persons.<名称>"
+                }
+            },
+            "_appearance": {
+                "type": "header",
+                "text": {
+                    "en": "Appearance",
+                    "de": "Darstellung",
+                    "ru": "Внешний вид",
+                    "pt": "Aparência",
+                    "nl": "Weergave",
+                    "fr": "Apparence",
+                    "it": "Aspetto",
+                    "es": "Apariencia",
+                    "pl": "Wygląd",
+                    "uk": "Зовнішній вигляд",
+                    "zh-cn": "外观"
+                }
+            },
+            "nameText": {
+                "type": "text",
+                "label": {
+                    "en": "Displayed name",
+                    "de": "Angezeigter Name",
+                    "ru": "Отображаемое имя",
+                    "pt": "Nome exibido",
+                    "nl": "Weergegeven naam",
+                    "fr": "Nom affiché",
+                    "it": "Nome visualizzato",
+                    "es": "Nombre mostrado",
+                    "pl": "Wyświetlana nazwa",
+                    "uk": "Показане ім'я",
+                    "zh-cn": "显示名称"
+                },
+                "help": {
+                    "en": "Empty: the name of the person",
+                    "de": "Leer: der Name der Person",
+                    "ru": "Пусто: имя человека",
+                    "pt": "Vazio: o nome da pessoa",
+                    "nl": "Leeg: de naam van de persoon",
+                    "fr": "Vide : le nom de la personne",
+                    "it": "Vuoto: il nome della persona",
+                    "es": "Vacío: el nombre de la persona",
+                    "pl": "Puste: nazwa osoby",
+                    "uk": "Порожньо: ім'я особи",
+                    "zh-cn": "留空：使用人员名称"
+                }
+            },
+            "showName": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show the name",
+                    "de": "Namen anzeigen",
+                    "ru": "Показывать имя",
+                    "pt": "Mostrar o nome",
+                    "nl": "Naam tonen",
+                    "fr": "Afficher le nom",
+                    "it": "Mostra il nome",
+                    "es": "Mostrar el nombre",
+                    "pl": "Pokaż nazwę",
+                    "uk": "Показувати ім'я",
+                    "zh-cn": "显示名称"
+                }
+            },
+            "image": {
+                "type": "text",
+                "label": {
+                    "en": "Image",
+                    "de": "Bild",
+                    "ru": "Изображение",
+                    "pt": "Imagem",
+                    "nl": "Afbeelding",
+                    "fr": "Image",
+                    "it": "Immagine",
+                    "es": "Imagen",
+                    "pl": "Obraz",
+                    "uk": "Зображення",
+                    "zh-cn": "图片"
+                },
+                "help": {
+                    "en": "URL of a picture, e.g. a photo of the person. Empty: the initials of the name",
+                    "de": "URL eines Bildes, z. B. ein Foto der Person. Leer: die Initialen des Namens",
+                    "ru": "URL изображения, например фото человека. Пусто: инициалы имени",
+                    "pt": "URL de uma imagem, por exemplo uma foto da pessoa. Vazio: as iniciais do nome",
+                    "nl": "URL van een afbeelding, bijv. een foto van de persoon. Leeg: de initialen van de naam",
+                    "fr": "URL d'une image, par ex. une photo de la personne. Vide : les initiales du nom",
+                    "it": "URL di un'immagine, ad es. una foto della persona. Vuoto: le iniziali del nome",
+                    "es": "URL de una imagen, p. ej. una foto de la persona. Vacío: las iniciales del nombre",
+                    "pl": "URL obrazu, np. zdjęcia osoby. Puste: inicjały imienia",
+                    "uk": "URL зображення, наприклад фото особи. Порожньо: ініціали імені",
+                    "zh-cn": "图片的 URL，例如人员照片。为空时显示姓名首字母"
+                }
+            },
+            "grayAbsent": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Gray out photo and icon while away",
+                    "de": "Foto und Symbol bei Abwesenheit ausgrauen",
+                    "ru": "Затемнять фото и значок, когда нет дома",
+                    "pt": "Acinzentar foto e ícone quando ausente",
+                    "nl": "Foto en pictogram grijs bij afwezigheid",
+                    "fr": "Griser la photo et l'icône en cas d'absence",
+                    "it": "Rendi grigi foto e icona quando assente",
+                    "es": "Atenuar foto e icono en ausencia",
+                    "pl": "Wyszarz zdjęcie i ikonę podczas nieobecności",
+                    "uk": "Затемнювати фото і значок, коли немає вдома",
+                    "zh-cn": "离开时照片和图标显示为灰色"
+                }
+            },
+            "presentText": {
+                "type": "text",
+                "label": {
+                    "en": "Text present",
+                    "de": "Text anwesend",
+                    "ru": "Текст «дома»",
+                    "pt": "Texto presente",
+                    "nl": "Tekst aanwezig",
+                    "fr": "Texte présent",
+                    "it": "Testo presente",
+                    "es": "Texto presente",
+                    "pl": "Tekst obecny",
+                    "uk": "Текст «вдома»",
+                    "zh-cn": "在家文字"
+                }
+            },
+            "absentText": {
+                "type": "text",
+                "label": {
+                    "en": "Text away",
+                    "de": "Text abwesend",
+                    "ru": "Текст «нет дома»",
+                    "pt": "Texto ausente",
+                    "nl": "Tekst afwezig",
+                    "fr": "Texte absent",
+                    "it": "Testo assente",
+                    "es": "Texto ausente",
+                    "pl": "Tekst nieobecny",
+                    "uk": "Текст «немає вдома»",
+                    "zh-cn": "离开文字"
+                }
+            },
+            "presentColor": {
+                "type": "color",
+                "label": {
+                    "en": "Color present",
+                    "de": "Farbe anwesend",
+                    "ru": "Цвет «дома»",
+                    "pt": "Cor presente",
+                    "nl": "Kleur aanwezig",
+                    "fr": "Couleur présent",
+                    "it": "Colore presente",
+                    "es": "Color presente",
+                    "pl": "Kolor obecny",
+                    "uk": "Колір «вдома»",
+                    "zh-cn": "在家颜色"
+                }
+            },
+            "absentColor": {
+                "type": "color",
+                "label": {
+                    "en": "Color away",
+                    "de": "Farbe abwesend",
+                    "ru": "Цвет «нет дома»",
+                    "pt": "Cor ausente",
+                    "nl": "Kleur afwezig",
+                    "fr": "Couleur absent",
+                    "it": "Colore assente",
+                    "es": "Color ausente",
+                    "pl": "Kolor nieobecny",
+                    "uk": "Колір «немає вдома»",
+                    "zh-cn": "离开颜色"
+                }
+            },
+            "_display": {
+                "type": "header",
+                "text": {
+                    "en": "Content",
+                    "de": "Inhalt",
+                    "ru": "Содержимое",
+                    "pt": "Conteúdo",
+                    "nl": "Inhoud",
+                    "fr": "Contenu",
+                    "it": "Contenuto",
+                    "es": "Contenido",
+                    "pl": "Zawartość",
+                    "uk": "Вміст",
+                    "zh-cn": "内容"
+                }
+            },
+            "showDuration": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show since when",
+                    "de": "Seit wann anzeigen",
+                    "ru": "Показывать, с какого времени",
+                    "pt": "Mostrar desde quando",
+                    "nl": "Tonen sinds wanneer",
+                    "fr": "Afficher depuis quand",
+                    "it": "Mostra da quando",
+                    "es": "Mostrar desde cuándo",
+                    "pl": "Pokaż od kiedy",
+                    "uk": "Показувати, з якого часу",
+                    "zh-cn": "显示持续时间"
+                }
+            },
+            "showArrival": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show last arrival",
+                    "de": "Letzte Ankunft anzeigen",
+                    "ru": "Показывать последний приход",
+                    "pt": "Mostrar última chegada",
+                    "nl": "Laatste aankomst tonen",
+                    "fr": "Afficher la dernière arrivée",
+                    "it": "Mostra l'ultimo arrivo",
+                    "es": "Mostrar última llegada",
+                    "pl": "Pokaż ostatnie przyjście",
+                    "uk": "Показувати останній прихід",
+                    "zh-cn": "显示最近到达"
+                }
+            },
+            "showDeparture": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show last departure",
+                    "de": "Letztes Gehen anzeigen",
+                    "ru": "Показывать последний уход",
+                    "pt": "Mostrar última saída",
+                    "nl": "Laatste vertrek tonen",
+                    "fr": "Afficher le dernier départ",
+                    "it": "Mostra l'ultima partenza",
+                    "es": "Mostrar última salida",
+                    "pl": "Pokaż ostatnie wyjście",
+                    "uk": "Показувати останній відхід",
+                    "zh-cn": "显示最近离开"
+                }
+            },
+            "showToday": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show today's sums",
+                    "de": "Summen von heute anzeigen",
+                    "ru": "Показывать суммы за сегодня",
+                    "pt": "Mostrar totais de hoje",
+                    "nl": "Totalen van vandaag tonen",
+                    "fr": "Afficher les totaux d'aujourd'hui",
+                    "it": "Mostra i totali di oggi",
+                    "es": "Mostrar totales de hoy",
+                    "pl": "Pokaż sumy z dzisiaj",
+                    "uk": "Показувати суми за сьогодні",
+                    "zh-cn": "显示今日合计"
+                }
+            },
+            "showDevices": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show MAC addresses seen",
+                    "de": "Gesehene MAC-Adressen anzeigen",
+                    "ru": "Показывать замеченные MAC-адреса",
+                    "pt": "Mostrar endereços MAC vistos",
+                    "nl": "Geziene MAC-adressen tonen",
+                    "fr": "Afficher les adresses MAC vues",
+                    "it": "Mostra gli indirizzi MAC visti",
+                    "es": "Mostrar direcciones MAC vistas",
+                    "pl": "Pokaż widziane adresy MAC",
+                    "uk": "Показувати помічені MAC-адреси",
+                    "zh-cn": "显示已发现的 MAC 地址"
+                }
+            },
+            "showSeen": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show where last seen",
+                    "de": "Zuletzt gesehen anzeigen",
+                    "ru": "Показывать, где замечен последний раз",
+                    "pt": "Mostrar onde foi visto pela última vez",
+                    "nl": "Tonen waar laatst gezien",
+                    "fr": "Afficher où vu pour la dernière fois",
+                    "it": "Mostra dove è stato visto l'ultima volta",
+                    "es": "Mostrar dónde se vio por última vez",
+                    "pl": "Pokaż, gdzie ostatnio widziano",
+                    "uk": "Показувати, де помічено востаннє",
+                    "zh-cn": "显示最后发现的位置"
+                },
+                "help": {
+                    "en": "Router, SSID and time of the last sighting",
+                    "de": "Router, SSID und Zeit der letzten Sichtung",
+                    "ru": "Роутер, SSID и время последнего обнаружения",
+                    "pt": "Roteador, SSID e hora da última deteção",
+                    "nl": "Router, SSID en tijd van de laatste waarneming",
+                    "fr": "Routeur, SSID et heure de la dernière détection",
+                    "it": "Router, SSID e ora dell'ultimo rilevamento",
+                    "es": "Router, SSID y hora de la última detección",
+                    "pl": "Router, SSID i czas ostatniego wykrycia",
+                    "uk": "Роутер, SSID і час останнього виявлення",
+                    "zh-cn": "最后一次发现时的路由器、SSID 和时间"
+                }
+            },
+            "_history": {
+                "type": "header",
+                "text": {
+                    "en": "History",
+                    "de": "Verlauf",
+                    "ru": "История",
+                    "pt": "Histórico",
+                    "nl": "Geschiedenis",
+                    "fr": "Historique",
+                    "it": "Cronologia",
+                    "es": "Historial",
+                    "pl": "Historia",
+                    "uk": "Історія",
+                    "zh-cn": "历史"
+                }
+            },
+            "showHistory": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show the history (click on the tile)",
+                    "de": "Verlauf anzeigen (Klick auf die Kachel)",
+                    "ru": "Показывать историю (нажатие на плитку)",
+                    "pt": "Mostrar o histórico (clique no bloco)",
+                    "nl": "Geschiedenis tonen (klik op de tegel)",
+                    "fr": "Afficher l'historique (clic sur la tuile)",
+                    "it": "Mostra la cronologia (clic sul riquadro)",
+                    "es": "Mostrar el historial (clic en el mosaico)",
+                    "pl": "Pokaż historię (kliknięcie kafelka)",
+                    "uk": "Показувати історію (натискання на плитку)",
+                    "zh-cn": "显示历史记录（点击磁贴）"
+                },
+                "help": {
+                    "en": "Only if the widget is high enough. From a history instance if it logs the state \"present\" of the person, otherwise the list of the adapter",
+                    "de": "Nur wenn das Widget hoch genug ist. Aus einer History-Instanz, wenn sie den Zustand \"present\" der Person aufzeichnet, sonst die Liste des Adapters",
+                    "ru": "Только если виджет достаточно высокий. Из экземпляра истории, если он записывает состояние «present» персоны, иначе список адаптера",
+                    "pt": "Apenas se o widget for alto o suficiente. De uma instância de histórico se ela registar o estado \"present\" da pessoa, caso contrário a lista do adaptador",
+                    "nl": "Alleen als de widget hoog genoeg is. Uit een geschiedenis-instantie als die de toestand \"present\" van de persoon logt, anders de lijst van de adapter",
+                    "fr": "Seulement si le widget est assez haut. Depuis une instance d'historique si elle enregistre l'état « present » de la personne, sinon la liste de l'adaptateur",
+                    "it": "Solo se il widget è abbastanza alto. Da un'istanza di cronologia se registra lo stato \"present\" della persona, altrimenti l'elenco dell'adattatore",
+                    "es": "Solo si el widget es lo bastante alto. De una instancia de historial si registra el estado \"present\" de la persona; si no, la lista del adaptador",
+                    "pl": "Tylko jeśli widżet jest wystarczająco wysoki. Z instancji historii, jeśli rejestruje stan „present” osoby, w przeciwnym razie lista adaptera",
+                    "uk": "Лише якщо віджет достатньо високий. З екземпляра історії, якщо він записує стан «present» особи, інакше список адаптера",
+                    "zh-cn": "仅当小部件足够高时显示。如果历史实例记录了此人的“present”状态则从中读取，否则使用适配器的列表"
+                }
+            },
+            "historyCount": {
+                "type": "number",
+                "default": 10,
+                "min": 1,
+                "max": 100,
+                "label": {
+                    "en": "Number of entries",
+                    "de": "Anzahl der Einträge",
+                    "ru": "Количество записей",
+                    "pt": "Número de entradas",
+                    "nl": "Aantal items",
+                    "fr": "Nombre d'entrées",
+                    "it": "Numero di voci",
+                    "es": "Número de entradas",
+                    "pl": "Liczba wpisów",
+                    "uk": "Кількість записів",
+                    "zh-cn": "条目数"
+                },
+                "hidden": "data.showHistory === false"
+            },
+            "historyDays": {
+                "type": "number",
+                "default": 7,
+                "min": 1,
+                "max": 365,
+                "label": {
+                    "en": "Days",
+                    "de": "Tage",
+                    "ru": "Дни",
+                    "pt": "Dias",
+                    "nl": "Dagen",
+                    "fr": "Jours",
+                    "it": "Giorni",
+                    "es": "Días",
+                    "pl": "Dni",
+                    "uk": "Дні",
+                    "zh-cn": "天数"
+                },
+                "help": {
+                    "en": "How many days are read from a history instance",
+                    "de": "Wie viele Tage aus einer History-Instanz gelesen werden",
+                    "ru": "Сколько дней читается из экземпляра истории",
+                    "pt": "Quantos dias são lidos de uma instância de histórico",
+                    "nl": "Hoeveel dagen uit een geschiedenis-instantie worden gelezen",
+                    "fr": "Combien de jours sont lus depuis une instance d'historique",
+                    "it": "Quanti giorni vengono letti da un'istanza di cronologia",
+                    "es": "Cuántos días se leen de una instancia de historial",
+                    "pl": "Ile dni jest odczytywanych z instancji historii",
+                    "uk": "Скільки днів читається з екземпляра історії",
+                    "zh-cn": "从历史实例读取的天数"
+                },
+                "hidden": "data.showHistory === false"
+            }
+        }
+    }
+}

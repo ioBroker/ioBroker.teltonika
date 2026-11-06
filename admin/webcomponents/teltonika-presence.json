@@ -1,0 +1,153 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-teltonika-presence",
+    "name": {
+        "en": "Teltonika presence",
+        "de": "Teltonika Anwesenheit",
+        "ru": "Teltonika присутствие",
+        "pt": "Teltonika presença",
+        "nl": "Teltonika aanwezigheid",
+        "fr": "Teltonika présence",
+        "it": "Teltonika presenza",
+        "es": "Teltonika presencia",
+        "pl": "Teltonika obecność",
+        "uk": "Teltonika присутність",
+        "zh-cn": "Teltonika 在场"
+    },
+    "description": {
+        "en": "The persons of the presence detection: present or away, for how long, and when they came or left",
+        "de": "Die Personen der Anwesenheitserkennung: anwesend oder abwesend, wie lange, und wann sie kamen oder gingen",
+        "ru": "Люди из определения присутствия: дома или нет, как долго, и когда пришли или ушли",
+        "pt": "As pessoas da deteção de presença: presentes ou ausentes, há quanto tempo, e quando chegaram ou saíram",
+        "nl": "De personen van de aanwezigheidsdetectie: aanwezig of weg, hoe lang, en wanneer ze kwamen of gingen",
+        "fr": "Les personnes de la détection de présence : présentes ou absentes, depuis quand, et quand elles sont arrivées ou parties",
+        "it": "Le persone del rilevamento di presenza: presenti o fuori, da quanto tempo, e quando sono arrivate o uscite",
+        "es": "Las personas de la detección de presencia: presentes o fuera, desde hace cuánto, y cuándo llegaron o se fueron",
+        "pl": "Osoby z wykrywania obecności: obecne lub nieobecne, jak długo, i kiedy przyszły lub wyszły",
+        "uk": "Особи з визначення присутності: вдома чи ні, як довго, і коли прийшли або пішли",
+        "zh-cn": "在家检测中的人员：在家或外出、持续多久，以及何时到达或离开"
+    },
+    "icon": "teltonika-presence.svg",
+    "module": "teltonika-presence.js",
+    "size": {
+        "width": 320,
+        "height": 300
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "teltonika",
+                "default": "teltonika.0",
+                "label": {
+                    "en": "Teltonika adapter instance",
+                    "de": "Teltonika-Instanz",
+                    "ru": "Экземпляр адаптера Teltonika",
+                    "pt": "Instância do adaptador Teltonika",
+                    "nl": "Teltonika-adapterinstantie",
+                    "fr": "Instance de l'adaptateur Teltonika",
+                    "it": "Istanza dell'adattatore Teltonika",
+                    "es": "Instancia del adaptador Teltonika",
+                    "pl": "Instancja adaptera Teltonika",
+                    "uk": "Екземпляр адаптера Teltonika",
+                    "zh-cn": "Teltonika 适配器实例"
+                }
+            },
+            "group": {
+                "type": "text",
+                "label": {
+                    "en": "Group",
+                    "de": "Gruppe",
+                    "ru": "Группа",
+                    "pt": "Grupo",
+                    "nl": "Groep",
+                    "fr": "Groupe",
+                    "it": "Gruppo",
+                    "es": "Grupo",
+                    "pl": "Grupa",
+                    "uk": "Група",
+                    "zh-cn": "组"
+                },
+                "help": {
+                    "en": "Empty = all persons",
+                    "de": "Leer = alle Personen",
+                    "ru": "Пусто = все персоны",
+                    "pt": "Vazio = todas as pessoas",
+                    "nl": "Leeg = alle personen",
+                    "fr": "Vide = toutes les personnes",
+                    "it": "Vuoto = tutte le persone",
+                    "es": "Vacío = todas las personas",
+                    "pl": "Puste = wszystkie osoby",
+                    "uk": "Порожньо = усі особи",
+                    "zh-cn": "空 = 所有人员"
+                }
+            },
+            "onlyActive": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Only present",
+                    "de": "Nur anwesende",
+                    "ru": "Только присутствующие",
+                    "pt": "Apenas presentes",
+                    "nl": "Alleen aanwezigen",
+                    "fr": "Seulement les présents",
+                    "it": "Solo presenti",
+                    "es": "Solo presentes",
+                    "pl": "Tylko obecni",
+                    "uk": "Лише присутні",
+                    "zh-cn": "仅显示在场"
+                }
+            },
+            "activeFirst": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Present first",
+                    "de": "Anwesende zuerst",
+                    "ru": "Сначала присутствующие",
+                    "pt": "Presentes primeiro",
+                    "nl": "Aanwezigen eerst",
+                    "fr": "Présents d'abord",
+                    "it": "Prima i presenti",
+                    "es": "Presentes primero",
+                    "pl": "Najpierw obecni",
+                    "uk": "Спочатку присутні",
+                    "zh-cn": "在场的排在前面"
+                }
+            },
+            "showGuests": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show guests",
+                    "de": "Gäste anzeigen",
+                    "ru": "Показывать гостей",
+                    "pt": "Mostrar convidados",
+                    "nl": "Gasten tonen",
+                    "fr": "Afficher les invités",
+                    "it": "Mostra ospiti",
+                    "es": "Mostrar invitados",
+                    "pl": "Pokaż gości",
+                    "uk": "Показувати гостей",
+                    "zh-cn": "显示访客"
+                },
+                "help": {
+                    "en": "The number of stations in the guest SSIDs, if the instance counts them",
+                    "de": "Die Anzahl der Stationen in den Gast-SSIDs, wenn die Instanz sie zählt",
+                    "ru": "Количество станций в гостевых SSID, если экземпляр их считает",
+                    "pt": "O número de estações nos SSIDs de convidados, se a instância as contar",
+                    "nl": "Het aantal stations in de gast-SSID's, als de instantie ze telt",
+                    "fr": "Le nombre de stations dans les SSID invités, si l'instance les compte",
+                    "it": "Il numero di stazioni negli SSID ospiti, se l'istanza le conta",
+                    "es": "El número de estaciones en los SSID de invitados, si la instancia las cuenta",
+                    "pl": "Liczba stacji w SSID gości, jeśli instancja je liczy",
+                    "uk": "Кількість станцій у гостьових SSID, якщо екземпляр їх рахує",
+                    "zh-cn": "访客 SSID 中的终端数量（如果实例统计）"
+                }
+            }
+        }
+    }
+}

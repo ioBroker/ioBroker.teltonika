@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ES2022"],
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "jsx": "react-jsx",
+        "types": ["@iobroker/types"],
+        // `../src-devices/src/utils.ts` is compiled in and names the connection of `@iobroker/gui-components` as a
+        // type only: this shim stands for it, so the check needs neither that package nor src-devices/node_modules
+        "paths": {
+            "@iobroker/gui-components": ["./src/shims/gui-components.d.ts"]
+        }
+    },
+    "include": ["src"]
+}

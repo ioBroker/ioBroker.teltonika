@@ -29,6 +29,8 @@ export default [
             // The device widgets are a separate Vite project with their own toolchain and tsconfig
             'src-devices/**/*',
             'src-widgets/**/*',
+            // the web components are a Vite project of their own too, linted with `npm run lint:wc`
+            'src-webcomponents/**/*',
             'widgets/**/*',
             'test/**/*',
             'src-admin/**/*',

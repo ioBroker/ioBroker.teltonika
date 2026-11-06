@@ -1,3 +1,4 @@
+const { exec } = require('node:child_process');
 const { deleteFoldersRecursive, buildReact, copyFiles, npmInstall } = require('@iobroker/build-tools');
 
 function buildDevices() {
@@ -33,6 +34,33 @@ function copyAllWidgetsFiles() {
     copyFiles(['src-widgets/build/**/*', '!src-widgets/build/index.html'], 'widgets/teltonika/');
 }
 
+// The web components (`common.webComponents`): one `vite build` per component, so that each one is ONE module
+// file - see src-webcomponents/vite.config.ts. `npm run build` there runs all of them; the build writes the
+// manifests and fails if one does not pass `checkManifest()`.
+function buildWebComponents() {
+    return new Promise((resolve, reject) => {
+        const child = exec('npm run build', { cwd: `${__dirname}/src-webcomponents/` }, error =>
+            error ? reject(new Error(`Cannot build the web components: ${error.message}`)) : resolve(),
+        );
+        child.stdout?.pipe(process.stdout);
+        child.stderr?.pipe(process.stderr);
+    });
+}
+
+function cleanWebComponents() {
+    deleteFoldersRecursive(`${__dirname}/admin/webcomponents`);
+    deleteFoldersRecursive(`${__dirname}/src-webcomponents/build`);
+}
+
+// the modules, their manifests (`<name>.json`) and the icon of `teltonika-presence` - the other icons are those of
+// the devices widgets in `admin/dm-widgets`
+function copyAllWebComponentsFiles() {
+    copyFiles(
+        ['src-webcomponents/build/*.js', 'src-webcomponents/build/*.json', 'src-webcomponents/build/*.svg'],
+        'admin/webcomponents/',
+    );
+}
+
 function devices() {
     cleanDevices();
     return npmInstall(`${__dirname}/src-devices/`)
@@ -45,6 +73,13 @@ function widgets() {
     return npmInstall(`${__dirname}/src-widgets/`)
         .then(() => buildWidgets())
         .then(() => copyAllWidgetsFiles());
+}
+
+function webComponents() {
+    cleanWebComponents();
+    return npmInstall(`${__dirname}/src-webcomponents/`)
+        .then(() => buildWebComponents())
+        .then(() => copyAllWebComponentsFiles());
 }
 
 if (process.argv.includes('--devices-0-clean')) {
@@ -70,8 +105,19 @@ if (process.argv.includes('--devices-0-clean')) {
     npmInstall(`${__dirname}/src-devices/`)
         .then(() => widgets())
         .catch(e => console.error(e));
+} else if (process.argv.includes('--wc')) {
+    webComponents().catch(e => {
+        console.error(e);
+        process.exit(2);
+    });
 } else {
     devices()
         .then(() => widgets())
-        .catch(e => console.error(e));
+        .catch(e => console.error(e))
+        // a web component whose manifest does not pass the check fails the build
+        .then(() => webComponents())
+        .catch(e => {
+            console.error(e);
+            process.exit(2);
+        });
 }
