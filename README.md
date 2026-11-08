@@ -222,7 +222,7 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 1.3.0 (2026-11-08)
 * (@GermanBluefox) Added the web components `<iob-teltonika-devices>`, `<iob-teltonika-ports>`, `<iob-teltonika-person>` and `<iob-teltonika-presence>` (`@iobroker/web-components`) for Aura, vis-2, admin and other hosts
 
 ### 1.2.0 (2026-11-02)
@@ -247,23 +247,6 @@ device, which is where the actual values come from. A TSW202 defines no traps at
 * (iobroker-bot) Adapter requires node.js >= 22 now.
 * (@GermanBluefox) Added vis-2 widgets: overview of all devices and front panel of one device
 * (@GermanBluefox) Fixed the device manager widgets failing to load now and then with React error #527
-
-### 1.0.0 (2026-08-10)
-* (bluefox) Added SNMP support for devices without an MQTT publisher, such as the TSW switches
-* (bluefox) Added a network scan that finds Teltonika devices and fills the device table
-* (bluefox) Split the configuration into an MQTT and an SNMP tab
-* (bluefox) Added optional SNMP branches for GPS, Wi-Fi and hotspot sessions, switched off by default
-* (bluefox) Removed the router type setting, which was never evaluated
-* (bluefox) Split the modem address: `wan` keeps the IPv4 address, `wanIPv6` is added where the device has one
-* (bluefox) Added an SNMP trap receiver that records notifications and polls the device that sent one
-* (bluefox) Community strings and SNMPv3 keys are now stored encrypted
-* (bluefox) Ports can be switched through `ports.<name>.enabled` when a write community is configured
-* (bluefox) Added two device manager widgets: an overview of all devices and a front panel view of the ports
-* (bluefox) `info.connection` now also lists the devices polled over SNMP, so an instance without MQTT clients
-  no longer appears disconnected
-* (bluefox) Added the WAN interfaces of a router under `interfaces.<name>`: status, enabled and uptime
-* (bluefox) A port state created before a write community was configured now becomes writable instead of
-  staying read-only forever
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
