@@ -60,12 +60,15 @@
     "release-patch": "release-script patch --yes",
     "release-minor": "release-script minor --yes",
     "release-major": "release-script major --yes",
-    "update-packages": "npx -y npm-check-updates --upgrade && cd src-devices && npx -y npm-check-updates --upgrade && cd ../src-widgets && npx -y npm-check-updates --upgrade",
-    "npm": "npm i && cd src-devices && npm i && cd ../src-widgets && npm i",
+    "update-packages": "npx -y npm-check-updates --upgrade && cd src-devices && npx -y npm-check-updates --upgrade && cd ../src-widgets && npx -y npm-check-updates --upgrade && cd ../src-webcomponents && npx -y npm-check-updates --upgrade",
+    "npm": "npm i && cd src-devices && npm i && cd ../src-widgets && npm i && cd ../src-webcomponents && npm i",
     "build:ts": "tsc -p tsconfig.build.json",
     "update-oui": "node tools/update-oui.js",
     "build:devices": "node tasks --devices",
-    "build:widgets": "node tasks --widgets"
+    "build:widgets": "node tasks --widgets",
+    "build:wc": "node tasks --wc",
+    "lint:wc": "cd src-webcomponents && npm run lint",
+    "check:wc": "cd src-webcomponents && npm run check-ts"
   },
   "engines": {
     "node": ">=22.19.0"

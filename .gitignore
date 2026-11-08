@@ -16,3 +16,7 @@ src-devices/build
 # vis-2 widget sources are built into widgets/teltonika
 src-widgets/node_modules
 src-widgets/build
+
+# Web components are built into admin/webcomponents (committed)
+src-webcomponents/node_modules
+src-webcomponents/build
